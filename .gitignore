@@ -1,0 +1,19 @@
+# Xcode
+build/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcuserstate
+*.xccheckout
+*.moved-aside
+DerivedData/
+.build/
+xcuserdata/
+*.xcscmblueprint
+
+# macOS
+.DS_Store
+
+# Generated
+generate_project.rb

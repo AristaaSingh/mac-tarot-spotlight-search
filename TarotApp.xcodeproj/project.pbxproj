@@ -1,0 +1,430 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		154C4DF80E929AE03801EFC4 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D7560C290B608359BE2A36D /* Cocoa.framework */; };
+		1903848BA00077C6FEEF9ECD /* CardDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B853BB9300056187F392DD6 /* CardDetailView.swift */; };
+		20F89B3E2FBA428563F4174B /* SearchResultRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00B7BE7C2E3A6766BEA609DF /* SearchResultRow.swift */; };
+		23F294F186D091D999A3CFCC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5C8FF89CD3C299500052AAFB /* Assets.xcassets */; };
+		4E8D61BC6201756F99C28BA0 /* TarotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D0834B607D9E69DEE8C0DEB /* TarotApp.swift */; };
+		54C101229243BF2C6DA8153B /* CardPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FB2FBAB4D5F9580FD161AE /* CardPopupView.swift */; };
+		57118D9F83B701D47C04327A /* Cards in Resources */ = {isa = PBXBuildFile; fileRef = 65F9D6C6DC874B4D95EE5A06 /* Cards */; };
+		582E923A4870650713B787F8 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A209B081B4A8191767A9D0FF /* HotkeyManager.swift */; };
+		5C70BA0793AAF4EC4C5AC563 /* CardContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CA408FA70366ACA90695D5F /* CardContentView.swift */; };
+		7A487D1ACDBE5E2853772FD2 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EB80078ED6E7C4C705CBA57 /* Cocoa.framework */; };
+		837F91456E3AE0BA8F2698D9 /* TarotCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29E5FA0A830555929D953EDB /* TarotCard.swift */; };
+		8D36E1F4F613970FC8D06438 /* SearchOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2616B2C427566061D1D8346 /* SearchOverlayView.swift */; };
+		8E87593480A954581F78A59E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC87CE005824D625BBA55DA /* AppDelegate.swift */; };
+		91FDA137CC83023583F339EA /* ContentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84D013B3C56F7EB631186513 /* ContentStore.swift */; };
+		A3BA099F652D81C94DE85D7B /* OverlayWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C06B60F82CCF46E5C95C3AD /* OverlayWindowController.swift */; };
+		AFA31FD7D9D556DFB6CAE53F /* SparkleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73EA46C86AB314427CA81BAD /* SparkleView.swift */; };
+		D51A45F193E70FABB08F060F /* CardData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D47B5E58D0C47D0C749D63 /* CardData.swift */; };
+		D9811D6B05C0695BB24E925A /* CardPopupWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D6D73C4613D9F3B82EE8935 /* CardPopupWindowController.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		00B7BE7C2E3A6766BEA609DF /* SearchResultRow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchResultRow.swift; sourceTree = "<group>"; };
+		0D7560C290B608359BE2A36D /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		29E5FA0A830555929D953EDB /* TarotCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TarotCard.swift; sourceTree = "<group>"; };
+		3B853BB9300056187F392DD6 /* CardDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardDetailView.swift; sourceTree = "<group>"; };
+		3CA408FA70366ACA90695D5F /* CardContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardContentView.swift; sourceTree = "<group>"; };
+		4DC87CE005824D625BBA55DA /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		4EB80078ED6E7C4C705CBA57 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = "<group>"; };
+		5B85C4F6CB163DAFC566DD73 /* TarotApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TarotApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5C8FF89CD3C299500052AAFB /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		61F2E92311DD68A6A85B8E5B /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		65F9D6C6DC874B4D95EE5A06 /* Cards */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder; path = Cards; sourceTree = "<group>"; };
+		68D47B5E58D0C47D0C749D63 /* CardData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardData.swift; sourceTree = "<group>"; };
+		6C06B60F82CCF46E5C95C3AD /* OverlayWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OverlayWindowController.swift; sourceTree = "<group>"; };
+		73EA46C86AB314427CA81BAD /* SparkleView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SparkleView.swift; sourceTree = "<group>"; };
+		84D013B3C56F7EB631186513 /* ContentStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentStore.swift; sourceTree = "<group>"; };
+		8D0834B607D9E69DEE8C0DEB /* TarotApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TarotApp.swift; sourceTree = "<group>"; };
+		8D6D73C4613D9F3B82EE8935 /* CardPopupWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardPopupWindowController.swift; sourceTree = "<group>"; };
+		A209B081B4A8191767A9D0FF /* HotkeyManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
+		B2616B2C427566061D1D8346 /* SearchOverlayView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchOverlayView.swift; sourceTree = "<group>"; };
+		F4FB2FBAB4D5F9580FD161AE /* CardPopupView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardPopupView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6E6487AE9E81281F41E82638 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				154C4DF80E929AE03801EFC4 /* Cocoa.framework in Frameworks */,
+				7A487D1ACDBE5E2853772FD2 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0023C82E0A73ABCFA9EF0C13 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B64BAE424834B4BFBCA2EE10 /* OS X */,
+				4EB80078ED6E7C4C705CBA57 /* Cocoa.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		17D953E3D42EFE38E0A791E0 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				B2616B2C427566061D1D8346 /* SearchOverlayView.swift */,
+				3B853BB9300056187F392DD6 /* CardDetailView.swift */,
+				73EA46C86AB314427CA81BAD /* SparkleView.swift */,
+				00B7BE7C2E3A6766BEA609DF /* SearchResultRow.swift */,
+				F4FB2FBAB4D5F9580FD161AE /* CardPopupView.swift */,
+				3CA408FA70366ACA90695D5F /* CardContentView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		1BDD4C5F7666CB34679115D1 = {
+			isa = PBXGroup;
+			children = (
+				48994405DB50E5B594704F76 /* Products */,
+				0023C82E0A73ABCFA9EF0C13 /* Frameworks */,
+				9E21DFBB1CBAAB1A2E0D7181 /* TarotApp */,
+			);
+			sourceTree = "<group>";
+		};
+		48994405DB50E5B594704F76 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5B85C4F6CB163DAFC566DD73 /* TarotApp.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9E21DFBB1CBAAB1A2E0D7181 /* TarotApp */ = {
+			isa = PBXGroup;
+			children = (
+				ABE76DCE644281D44DE6C087 /* Models */,
+				17D953E3D42EFE38E0A791E0 /* Views */,
+				8D0834B607D9E69DEE8C0DEB /* TarotApp.swift */,
+				4DC87CE005824D625BBA55DA /* AppDelegate.swift */,
+				6C06B60F82CCF46E5C95C3AD /* OverlayWindowController.swift */,
+				A209B081B4A8191767A9D0FF /* HotkeyManager.swift */,
+				5C8FF89CD3C299500052AAFB /* Assets.xcassets */,
+				61F2E92311DD68A6A85B8E5B /* Info.plist */,
+				8D6D73C4613D9F3B82EE8935 /* CardPopupWindowController.swift */,
+				65F9D6C6DC874B4D95EE5A06 /* Cards */,
+				84D013B3C56F7EB631186513 /* ContentStore.swift */,
+			);
+			path = TarotApp;
+			sourceTree = "<group>";
+		};
+		ABE76DCE644281D44DE6C087 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				29E5FA0A830555929D953EDB /* TarotCard.swift */,
+				68D47B5E58D0C47D0C749D63 /* CardData.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		B64BAE424834B4BFBCA2EE10 /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				0D7560C290B608359BE2A36D /* Cocoa.framework */,
+			);
+			name = "OS X";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		FA8020F8085B3805A616335C /* TarotApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 817991DA1E35C6138C3AB9D2 /* Build configuration list for PBXNativeTarget "TarotApp" */;
+			buildPhases = (
+				4C52BCEC35FC3F9A74AB0A8B /* Sources */,
+				6E6487AE9E81281F41E82638 /* Frameworks */,
+				7AD58D8DA3028B7B20AB1E87 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TarotApp;
+			productName = TarotApp;
+			productReference = 5B85C4F6CB163DAFC566DD73 /* TarotApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F65F9900AFF51A8440EFE31B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 2650;
+			};
+			buildConfigurationList = 9E05C3F394E324FFB4791F4B /* Build configuration list for PBXProject "TarotApp" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 1BDD4C5F7666CB34679115D1;
+			productRefGroup = 48994405DB50E5B594704F76 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				FA8020F8085B3805A616335C /* TarotApp */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7AD58D8DA3028B7B20AB1E87 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				23F294F186D091D999A3CFCC /* Assets.xcassets in Resources */,
+				57118D9F83B701D47C04327A /* Cards in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4C52BCEC35FC3F9A74AB0A8B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4E8D61BC6201756F99C28BA0 /* TarotApp.swift in Sources */,
+				8E87593480A954581F78A59E /* AppDelegate.swift in Sources */,
+				A3BA099F652D81C94DE85D7B /* OverlayWindowController.swift in Sources */,
+				582E923A4870650713B787F8 /* HotkeyManager.swift in Sources */,
+				837F91456E3AE0BA8F2698D9 /* TarotCard.swift in Sources */,
+				D51A45F193E70FABB08F060F /* CardData.swift in Sources */,
+				8D36E1F4F613970FC8D06438 /* SearchOverlayView.swift in Sources */,
+				1903848BA00077C6FEEF9ECD /* CardDetailView.swift in Sources */,
+				AFA31FD7D9D556DFB6CAE53F /* SparkleView.swift in Sources */,
+				20F89B3E2FBA428563F4174B /* SearchResultRow.swift in Sources */,
+				D9811D6B05C0695BB24E925A /* CardPopupWindowController.swift in Sources */,
+				54C101229243BF2C6DA8153B /* CardPopupView.swift in Sources */,
+				91FDA137CC83023583F339EA /* ContentStore.swift in Sources */,
+				5C70BA0793AAF4EC4C5AC563 /* CardContentView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		6BDD8369FACCF9BAAD55C5CF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = T8W6G8M3N8;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		7DF4D1DD7B9A0EDCD563A89B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = T8W6G8M3N8;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		D8DE4F9BFF8E43BF0AC50AFC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = TarotApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tarot.app;
+				PRODUCT_NAME = TarotApp;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		F669D6F37D9BE7CBF5065965 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = TarotApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tarot.app;
+				PRODUCT_NAME = TarotApp;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		817991DA1E35C6138C3AB9D2 /* Build configuration list for PBXNativeTarget "TarotApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D8DE4F9BFF8E43BF0AC50AFC /* Release */,
+				F669D6F37D9BE7CBF5065965 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9E05C3F394E324FFB4791F4B /* Build configuration list for PBXProject "TarotApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7DF4D1DD7B9A0EDCD563A89B /* Debug */,
+				6BDD8369FACCF9BAAD55C5CF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = F65F9900AFF51A8440EFE31B /* Project object */;
+}
