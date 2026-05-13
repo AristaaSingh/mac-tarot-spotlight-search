@@ -9,8 +9,8 @@ private class KeyablePanel: NSPanel {
 class OverlayWindowController: NSWindowController {
 
     static let shared = OverlayWindowController()
-    static let panelWidth:  CGFloat = 580
-    static let panelHeight: CGFloat = 540
+    static let panelWidth:  CGFloat = 540
+    static let panelHeight: CGFloat = 64
 
     private init() {
         let panel = KeyablePanel(
@@ -23,18 +23,13 @@ class OverlayWindowController: NSWindowController {
         )
         panel.isOpaque = false
         panel.backgroundColor = .clear
-        panel.hasShadow = false
+        panel.hasShadow = true
         panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.isMovableByWindowBackground = true
 
-        let hostingView = NSHostingView(rootView: SearchOverlayView())
-        hostingView.wantsLayer = true
-        hostingView.layer?.backgroundColor = CGColor(gray: 0, alpha: 0)
-        hostingView.layer?.isOpaque = false
-        panel.contentView = hostingView
-
         super.init(window: panel)
+        refreshContent()
     }
 
     required init?(coder: NSCoder) { fatalError() }
@@ -47,18 +42,28 @@ class OverlayWindowController: NSWindowController {
     func show() {
         guard let panel = window, let screen = NSScreen.main else { return }
         let sf = screen.visibleFrame
-        let topEdge = sf.maxY - 160
-        let x = (sf.width - Self.panelWidth) / 2 + sf.minX
-        let y = topEdge - Self.panelHeight
-        panel.setFrame(NSRect(x: x, y: y, width: Self.panelWidth, height: Self.panelHeight),
-                       display: false)
+        let x  = sf.midX - Self.panelWidth / 2
+        let y  = sf.maxY - 180 - Self.panelHeight
+        panel.setFrame(NSRect(x: x, y: y,
+                              width: Self.panelWidth,
+                              height: Self.panelHeight), display: false)
+        refreshContent()
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         panel.makeKeyAndOrderFront(nil)
     }
 
     func hide() {
+        ThumbnailWindowManager.shared.clear()
         window?.orderOut(nil)
         NSApp.setActivationPolicy(.accessory)
+    }
+
+    private func refreshContent() {
+        let hostingView = NSHostingView(rootView: SearchOverlayView())
+        hostingView.wantsLayer = true
+        hostingView.layer?.backgroundColor = CGColor(gray: 0, alpha: 0)
+        hostingView.layer?.isOpaque = false
+        window?.contentView = hostingView
     }
 }

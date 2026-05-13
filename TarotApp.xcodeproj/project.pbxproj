@@ -11,6 +11,7 @@
 		1903848BA00077C6FEEF9ECD /* CardDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B853BB9300056187F392DD6 /* CardDetailView.swift */; };
 		20F89B3E2FBA428563F4174B /* SearchResultRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00B7BE7C2E3A6766BEA609DF /* SearchResultRow.swift */; };
 		23F294F186D091D999A3CFCC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5C8FF89CD3C299500052AAFB /* Assets.xcassets */; };
+		454A17797CAF7860248E5A44 /* CardThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFC4BFDEF69FD279DC638105 /* CardThumbnailView.swift */; };
 		4E8D61BC6201756F99C28BA0 /* TarotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D0834B607D9E69DEE8C0DEB /* TarotApp.swift */; };
 		54C101229243BF2C6DA8153B /* CardPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FB2FBAB4D5F9580FD161AE /* CardPopupView.swift */; };
 		57118D9F83B701D47C04327A /* Cards in Resources */ = {isa = PBXBuildFile; fileRef = 65F9D6C6DC874B4D95EE5A06 /* Cards */; };
@@ -21,6 +22,7 @@
 		8D36E1F4F613970FC8D06438 /* SearchOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2616B2C427566061D1D8346 /* SearchOverlayView.swift */; };
 		8E87593480A954581F78A59E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC87CE005824D625BBA55DA /* AppDelegate.swift */; };
 		91FDA137CC83023583F339EA /* ContentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84D013B3C56F7EB631186513 /* ContentStore.swift */; };
+		95301734F9525C12124C2CEB /* ThumbnailWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3221B4DD44C2281BC645E73F /* ThumbnailWindowManager.swift */; };
 		A3BA099F652D81C94DE85D7B /* OverlayWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C06B60F82CCF46E5C95C3AD /* OverlayWindowController.swift */; };
 		AFA31FD7D9D556DFB6CAE53F /* SparkleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73EA46C86AB314427CA81BAD /* SparkleView.swift */; };
 		D51A45F193E70FABB08F060F /* CardData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D47B5E58D0C47D0C749D63 /* CardData.swift */; };
@@ -31,6 +33,7 @@
 		00B7BE7C2E3A6766BEA609DF /* SearchResultRow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchResultRow.swift; sourceTree = "<group>"; };
 		0D7560C290B608359BE2A36D /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 		29E5FA0A830555929D953EDB /* TarotCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TarotCard.swift; sourceTree = "<group>"; };
+		3221B4DD44C2281BC645E73F /* ThumbnailWindowManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThumbnailWindowManager.swift; sourceTree = "<group>"; };
 		3B853BB9300056187F392DD6 /* CardDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardDetailView.swift; sourceTree = "<group>"; };
 		3CA408FA70366ACA90695D5F /* CardContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardContentView.swift; sourceTree = "<group>"; };
 		4DC87CE005824D625BBA55DA /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -47,6 +50,7 @@
 		8D6D73C4613D9F3B82EE8935 /* CardPopupWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardPopupWindowController.swift; sourceTree = "<group>"; };
 		A209B081B4A8191767A9D0FF /* HotkeyManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
 		B2616B2C427566061D1D8346 /* SearchOverlayView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchOverlayView.swift; sourceTree = "<group>"; };
+		CFC4BFDEF69FD279DC638105 /* CardThumbnailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardThumbnailView.swift; sourceTree = "<group>"; };
 		F4FB2FBAB4D5F9580FD161AE /* CardPopupView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardPopupView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -81,6 +85,7 @@
 				00B7BE7C2E3A6766BEA609DF /* SearchResultRow.swift */,
 				F4FB2FBAB4D5F9580FD161AE /* CardPopupView.swift */,
 				3CA408FA70366ACA90695D5F /* CardContentView.swift */,
+				CFC4BFDEF69FD279DC638105 /* CardThumbnailView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -116,6 +121,7 @@
 				8D6D73C4613D9F3B82EE8935 /* CardPopupWindowController.swift */,
 				65F9D6C6DC874B4D95EE5A06 /* Cards */,
 				84D013B3C56F7EB631186513 /* ContentStore.swift */,
+				3221B4DD44C2281BC645E73F /* ThumbnailWindowManager.swift */,
 			);
 			path = TarotApp;
 			sourceTree = "<group>";
@@ -216,6 +222,8 @@
 				54C101229243BF2C6DA8153B /* CardPopupView.swift in Sources */,
 				91FDA137CC83023583F339EA /* ContentStore.swift in Sources */,
 				5C70BA0793AAF4EC4C5AC563 /* CardContentView.swift in Sources */,
+				454A17797CAF7860248E5A44 /* CardThumbnailView.swift in Sources */,
+				95301734F9525C12124C2CEB /* ThumbnailWindowManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

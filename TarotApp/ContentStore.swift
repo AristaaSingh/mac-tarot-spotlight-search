@@ -26,13 +26,10 @@ class ContentStore {
 
     // MARK: - File location
 
-    private static var folder: URL {
-        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        return docs.appendingPathComponent("TarotApp", isDirectory: true)
-    }
-
     static var fileURL: URL {
-        folder.appendingPathComponent("cards.json")
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        return home
+            .appendingPathComponent("Desktop/Programming/tarot-app/cards.json")
     }
 
     // MARK: - Load
@@ -50,7 +47,7 @@ class ContentStore {
         let url = Self.fileURL
         guard !FileManager.default.fileExists(atPath: url.path) else { return }
 
-        try? FileManager.default.createDirectory(at: Self.folder,
+        try? FileManager.default.createDirectory(at: Self.fileURL.deletingLastPathComponent(),
                                                  withIntermediateDirectories: true)
         let template = Dictionary(uniqueKeysWithValues: allCards.map {
             ($0.id, CardContent(upright: "", reversed: "", personalNote: ""))
