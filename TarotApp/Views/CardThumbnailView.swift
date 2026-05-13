@@ -16,9 +16,9 @@ struct CardThumbnailView: View {
             } else {
                 VStack(spacing: 5) {
                     Text(card.suitSymbol)
-                        .font(.system(size: 22))
+                        .font(.app(22))
                     Text(card.name)
-                        .font(.system(size: 9, weight: .medium))
+                        .font(.app(9, weight: .medium))
                         .foregroundColor(.white.opacity(0.6))
                         .multilineTextAlignment(.center)
                         .lineLimit(2)

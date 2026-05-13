@@ -19,23 +19,23 @@ struct SearchResultRow: View {
                         .clipShape(RoundedRectangle(cornerRadius: 6))
                 } else {
                     Text(card.suitSymbol)
-                        .font(.system(size: 18))
+                        .font(.app(18))
                 }
             }
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(card.name)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.app(14, weight: .medium))
                     .foregroundColor(.white)
                 HStack(spacing: 6) {
                     Text(card.arcana.rawValue)
-                        .font(.system(size: 11))
+                        .font(.app(11))
                         .foregroundColor(.white.opacity(0.5))
                     if card.suit != .none {
                         Text("·")
                             .foregroundColor(.white.opacity(0.3))
                         Text(card.suit.rawValue)
-                            .font(.system(size: 11))
+                            .font(.app(11))
                             .foregroundColor(.white.opacity(0.5))
                     }
                 }
@@ -43,7 +43,7 @@ struct SearchResultRow: View {
                 HStack(spacing: 4) {
                     ForEach(card.keywords.prefix(2), id: \.self) { kw in
                         Text(kw)
-                            .font(.system(size: 10))
+                            .font(.app(10))
                             .foregroundColor(.white.opacity(0.6))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
@@ -56,7 +56,7 @@ struct SearchResultRow: View {
             Spacer()
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 11, weight: .semibold))
+                .font(.app(11, weight: .semibold))
                 .foregroundColor(.white.opacity(0.3))
         }
         .padding(.horizontal, 14)

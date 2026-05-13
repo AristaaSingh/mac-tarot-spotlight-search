@@ -1,13 +1,21 @@
 import SwiftUI
 
-// Warm palette
-private extension Color {
-    static let warmBg       = Color(red: 0.99, green: 0.97, blue: 0.93)
-    static let warmInk      = Color(red: 0.18, green: 0.13, blue: 0.08)
-    static let warmMid      = Color(red: 0.45, green: 0.36, blue: 0.24)
-    static let warmFaint    = Color(red: 0.72, green: 0.65, blue: 0.54)
-    static let warmDivider  = Color(red: 0.86, green: 0.80, blue: 0.70)
-    static let warmPill     = Color(red: 0.88, green: 0.78, blue: 0.62)
+private struct Palette {
+    // Upright: burgundy on light
+    static let uprightInk      = Color(red: 0.278, green: 0, blue: 0.102)
+    static let uprightMid      = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.65)
+    static let uprightFaint    = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.38)
+    static let uprightDivider  = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.18)
+    static let uprightAccentBg = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.10)
+    static let uprightOverlay  = Color.white.opacity(0.40)
+
+    // Reversed: white on dark
+    static let reversedInk      = Color.white
+    static let reversedMid      = Color.white.opacity(0.75)
+    static let reversedFaint    = Color.white.opacity(0.45)
+    static let reversedDivider  = Color.white.opacity(0.18)
+    static let reversedAccentBg = Color.white.opacity(0.12)
+    static let reversedOverlay  = Color.black.opacity(0.25)
 }
 
 struct CardDetailPopupView: View {
@@ -17,15 +25,28 @@ struct CardDetailPopupView: View {
     @State private var isReversed = false
     @State private var appeared   = false
 
-    private var content: CardContent { ContentStore.shared.content(for: card.id) }
+    private var content: CardContent { ContentStore.shared.content(for: card) }
+
+    // Convenience: pick value based on reversed state
+    private func p<T>(_ upright: T, _ reversed: T) -> T { isReversed ? reversed : upright }
 
     var body: some View {
-        HStack(spacing: 0) {
-            contentPanel
-            Divider().background(Color.warmDivider)
-            imagePanel
+        ZStack {
+            Image(isReversed ? "content-window-bg-dark" : "content-window-bg")
+                .resizable()
+                .scaledToFill()
+                .frame(width: CardPopupWindowController.windowWidth,
+                       height: CardPopupWindowController.windowHeight)
+                .clipped()
+            p(Palette.uprightOverlay, Palette.reversedOverlay)
+
+            HStack(spacing: 0) {
+                contentPanel
+                Divider().background(p(Palette.uprightDivider, Palette.reversedDivider))
+                imagePanel
+            }
         }
-        .background(Color.warmBg)
+        .animation(.easeInOut(duration: 0.35), value: isReversed)
         .scaleEffect(appeared ? 1 : 0.92)
         .opacity(appeared ? 1 : 0)
         .onAppear {
@@ -41,28 +62,26 @@ struct CardDetailPopupView: View {
         ZStack(alignment: .topLeading) {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 20) {
+
                     // Header
                     VStack(alignment: .leading, spacing: 6) {
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
                             Text(card.name)
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(.warmInk)
+                                .font(.app(24, weight: .bold))
+                                .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
                             Text(card.displayNumber)
-                                .font(.system(size: 14))
-                                .foregroundColor(.warmFaint)
+                                .font(.app(14))
+                                .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
                         }
                         HStack(spacing: 6) {
                             pill(card.arcana.rawValue)
                             if card.suit != .none { pill(card.suit.rawValue) }
                             pill(card.element)
-                            if isReversed {
-                                pill("Reversed")
-                                    .foregroundColor(Color(red: 0.75, green: 0.3, blue: 0.2))
-                            }
+                            if isReversed { pill("Reversed", highlighted: true) }
                         }
                     }
 
-                    Divider().background(Color.warmDivider)
+                    Divider().background(p(Palette.uprightDivider, Palette.reversedDivider))
 
                     // Meaning
                     meaningSection(
@@ -72,12 +91,12 @@ struct CardDetailPopupView: View {
                     )
 
                     if !content.personalNote.isEmpty {
-                        Divider().background(Color.warmDivider)
+                        Divider().background(p(Palette.uprightDivider, Palette.reversedDivider))
                         meaningSection(title: "My Notes", icon: "moon.stars",
                                        text: content.personalNote)
                     }
 
-                    Divider().background(Color.warmDivider)
+                    Divider().background(p(Palette.uprightDivider, Palette.reversedDivider))
 
                     // Keywords
                     VStack(alignment: .leading, spacing: 8) {
@@ -85,11 +104,11 @@ struct CardDetailPopupView: View {
                         FlowLayout(spacing: 6) {
                             ForEach(card.keywords, id: \.self) { kw in
                                 Text(kw)
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.warmMid)
+                                    .font(.app(12))
+                                    .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
                                     .padding(.horizontal, 10)
                                     .padding(.vertical, 4)
-                                    .background(Color.warmPill.opacity(0.45))
+                                    .background(p(Palette.uprightAccentBg, Palette.reversedAccentBg))
                                     .clipShape(Capsule())
                             }
                         }
@@ -105,69 +124,54 @@ struct CardDetailPopupView: View {
             Button(action: onClose) {
                 ZStack {
                     Circle()
-                        .fill(Color.warmFaint.opacity(0.35))
+                        .fill(p(Palette.uprightFaint, Palette.reversedFaint).opacity(0.4))
                         .frame(width: 24, height: 24)
                     Image(systemName: "xmark")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.warmMid)
+                        .font(.app(10, weight: .bold))
+                        .foregroundColor(p(Palette.uprightMid, Palette.reversedMid))
                 }
             }
             .buttonStyle(.plain)
             .padding(14)
         }
-        .frame(width: 500)
+        .frame(width: CardPopupWindowController.leftPanelW)
     }
 
     // MARK: - Right: card image
 
     private var imagePanel: some View {
-        VStack(spacing: 16) {
+        let cw = CardPopupWindowController.cardDisplayW
+        let ch = CardPopupWindowController.cardDisplayH
+
+        return ZStack {
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.warmPill.opacity(0.25))
-                    .frame(width: 160, height: 240)
+                    .fill(p(Palette.uprightAccentBg, Palette.reversedAccentBg))
 
                 if let img = card.image {
                     Image(nsImage: img)
                         .resizable()
-                        .scaledToFill()
-                        .frame(width: 160, height: 240)
+                        .scaledToFit()
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 } else {
                     VStack(spacing: 8) {
-                        Text(card.suitSymbol).font(.system(size: 40))
+                        Text(card.suitSymbol).font(.app(44))
                         Text(card.name)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(.warmMid)
+                            .font(.app(11, weight: .bold))
+                            .foregroundColor(p(Palette.uprightMid, Palette.reversedMid))
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 12)
                     }
                 }
             }
+            .frame(width: cw, height: ch)
             .rotationEffect(.degrees(isReversed ? 180 : 0))
             .animation(.spring(response: 0.5, dampingFraction: 0.72), value: isReversed)
             .onTapGesture { isReversed.toggle() }
             .help(isReversed ? "Tap to restore upright" : "Tap to reverse")
-
-            Button {
-                withAnimation(.spring(response: 0.4)) { isReversed.toggle() }
-            } label: {
-                HStack(spacing: 5) {
-                    Image(systemName: isReversed ? "arrow.up" : "arrow.down")
-                    Text(isReversed ? "Reversed" : "Upright")
-                }
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(.warmMid)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 5)
-                .background(Color.warmPill.opacity(0.35))
-                .clipShape(Capsule())
-            }
-            .buttonStyle(.plain)
         }
-        .frame(width: 260)
-        .frame(maxHeight: .infinity)
-        .background(Color(red: 0.97, green: 0.94, blue: 0.89))
+        .frame(width: CardPopupWindowController.rightPanelW,
+               height: CardPopupWindowController.windowHeight)
     }
 
     // MARK: - Helpers
@@ -176,15 +180,14 @@ struct CardDetailPopupView: View {
         VStack(alignment: .leading, spacing: 8) {
             sectionLabel(title, icon: icon)
             if text.isEmpty {
-                Text("No interpretation written yet.\nOpen cards.json in the project folder to add one.")
-                    .font(.system(size: 13))
-                    .foregroundColor(.warmFaint)
-                    .italic()
+                Text("Nothing written yet — open the card's .md file to add your interpretation.")
+                    .font(.appItalic(13))
+                    .foregroundColor(p(Palette.uprightFaint, Palette.reversedFaint))
                     .lineSpacing(4)
             } else {
                 Text(text)
-                    .font(.system(size: 14))
-                    .foregroundColor(.warmInk)
+                    .font(.app(14))
+                    .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
                     .lineSpacing(5)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -193,19 +196,19 @@ struct CardDetailPopupView: View {
 
     private func sectionLabel(_ title: String, icon: String) -> some View {
         Label(title, systemImage: icon)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundColor(.warmFaint)
+            .font(.app(11, weight: .semibold))
+            .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
             .textCase(.uppercase)
             .kerning(0.8)
     }
 
-    private func pill(_ text: String) -> some View {
+    private func pill(_ text: String, highlighted: Bool = false) -> some View {
         Text(text)
-            .font(.system(size: 10, weight: .medium))
-            .foregroundColor(.warmMid)
+            .font(.app(10, weight: .bold))
+            .foregroundColor(highlighted ? p(Palette.uprightInk, Palette.reversedInk) : p(Palette.uprightMid, Palette.reversedMid))
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
-            .background(Color.warmPill.opacity(0.35))
+            .background(p(Palette.uprightAccentBg, Palette.reversedAccentBg))
             .clipShape(RoundedRectangle(cornerRadius: 5))
     }
 }

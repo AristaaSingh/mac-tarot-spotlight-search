@@ -48,7 +48,6 @@ class OverlayWindowController: NSWindowController {
                               width: Self.panelWidth,
                               height: Self.panelHeight), display: false)
         refreshContent()
-        NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         panel.makeKeyAndOrderFront(nil)
     }
@@ -56,7 +55,6 @@ class OverlayWindowController: NSWindowController {
     func hide() {
         ThumbnailWindowManager.shared.clear()
         window?.orderOut(nil)
-        NSApp.setActivationPolicy(.accessory)
     }
 
     private func refreshContent() {

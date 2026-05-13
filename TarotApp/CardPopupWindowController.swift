@@ -19,8 +19,18 @@ class CardPopupManager {
 
 class CardPopupWindowController: NSWindowController {
 
-    static let windowWidth:  CGFloat = 760
-    static let windowHeight: CGFloat = 480
+    // Card image display size (2:3 tarot ratio)
+    static let cardDisplayW: CGFloat = 220
+    static let cardDisplayH: CGFloat = 330
+    static let cardPadding:  CGFloat = 24
+
+    // Right panel is exactly the card + padding on all sides
+    static let rightPanelW:  CGFloat = cardDisplayW + cardPadding * 2   // 268
+    // Window height equals card height + padding top/bottom
+    static let windowHeight: CGFloat = cardDisplayH + cardPadding * 2   // 378
+    // Left scrollable content panel
+    static let leftPanelW:   CGFloat = 460
+    static let windowWidth:  CGFloat = leftPanelW + rightPanelW         // 728
 
     init(card: TarotCard) {
         let panel = NSPanel(
@@ -31,8 +41,8 @@ class CardPopupWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        panel.isOpaque = true
-        panel.backgroundColor = NSColor(red: 0.99, green: 0.97, blue: 0.93, alpha: 1)
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
         panel.hasShadow = true
         panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
@@ -56,7 +66,13 @@ class CardPopupWindowController: NSWindowController {
     required init?(coder: NSCoder) { fatalError() }
 
     func show() {
+        window?.alphaValue = 0
         window?.orderFrontRegardless()
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = 0.28
+            ctx.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            window?.animator().alphaValue = 1
+        }
     }
 
     private func position() {

@@ -67,8 +67,8 @@ class ThumbnailWindowManager {
         panel.isMovable = false
 
         let content = ThumbnailCardView(card: card, delay: delay) {
-            CardPopupManager.shared.open(card: card)
             OverlayWindowController.shared.hide()
+            CardPopupManager.shared.open(card: card)
         }
         panel.contentView = NSHostingView(rootView: content)
         return panel

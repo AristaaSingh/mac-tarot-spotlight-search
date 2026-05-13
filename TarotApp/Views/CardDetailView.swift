@@ -48,9 +48,9 @@ struct CardDetailView: View {
                 } else {
                     VStack(spacing: 8) {
                         Text(card.suitSymbol)
-                            .font(.system(size: 48))
+                            .font(.app(48))
                         Text(card.name)
-                            .font(.system(size: 13, weight: .medium))
+                            .font(.app(13, weight: .medium))
                             .foregroundColor(.white.opacity(0.7))
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 12)
@@ -66,7 +66,7 @@ struct CardDetailView: View {
                     Image(systemName: isReversed ? "arrow.up" : "arrow.down")
                     Text(isReversed ? "Reversed" : "Upright")
                 }
-                .font(.system(size: 11, weight: .medium))
+                .font(.app(11, weight: .medium))
                 .foregroundColor(.white.opacity(0.6))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 5)
@@ -87,10 +87,10 @@ struct CardDetailView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         Text(card.name)
-                            .font(.system(size: 24, weight: .bold))
+                            .font(.app(24, weight: .bold))
                             .foregroundColor(.white)
                         Text(card.displayNumber)
-                            .font(.system(size: 14, weight: .regular))
+                            .font(.app(14, weight: .regular))
                             .foregroundColor(.white.opacity(0.4))
                     }
                     HStack(spacing: 10) {
@@ -104,7 +104,7 @@ struct CardDetailView: View {
                 FlowLayout(spacing: 6) {
                     ForEach(card.keywords, id: \.self) { kw in
                         Text(kw)
-                            .font(.system(size: 11))
+                            .font(.app(11))
                             .foregroundColor(Color(red: 0.85, green: 0.75, blue: 1))
                             .padding(.horizontal, 9)
                             .padding(.vertical, 4)
@@ -133,7 +133,7 @@ struct CardDetailView: View {
 
     private func metaBadge(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 10, weight: .medium))
+            .font(.app(10, weight: .medium))
             .foregroundColor(.white.opacity(0.55))
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
@@ -144,18 +144,18 @@ struct CardDetailView: View {
     private func meaningSection(title: String, icon: String, text: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Label(title, systemImage: icon)
-                .font(.system(size: 12, weight: .semibold))
+                .font(.app(12, weight: .semibold))
                 .foregroundColor(.white.opacity(0.5))
                 .textCase(.uppercase)
                 .kerning(0.8)
             if text.isEmpty {
                 Text("Your interpretation…")
-                    .font(.system(size: 13))
+                    .font(.app(13))
                     .foregroundColor(.white.opacity(0.2))
                     .italic()
             } else {
                 Text(text)
-                    .font(.system(size: 13))
+                    .font(.app(13))
                     .foregroundColor(.white.opacity(0.85))
                     .lineSpacing(4)
                     .fixedSize(horizontal: false, vertical: true)

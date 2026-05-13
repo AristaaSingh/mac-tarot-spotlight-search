@@ -21,13 +21,11 @@ struct SearchOverlayView: View {
 
     var body: some View {
         ZStack {
-            Image("cloud-night-overlay")
-                .resizable()
-                .scaledToFill()
+            AnimatedGIFView(filename: "dreamy-banner")
                 .frame(width: OverlayWindowController.panelWidth,
                        height: OverlayWindowController.panelHeight)
                 .clipped()
-            Color.black.opacity(0.5)
+            Color.black.opacity(0.35)
 
             searchBar
         }
@@ -62,11 +60,11 @@ struct SearchOverlayView: View {
     private var searchBar: some View {
         HStack(spacing: 12) {
             Image(systemName: "moon.stars.fill")
-                .font(.system(size: 16))
+                .font(.app(16))
                 .foregroundColor(Color(red: 0.75, green: 0.6, blue: 1))
 
             TextField("Search cards…", text: $query)
-                .font(.system(size: 18, weight: .light))
+                .font(.app(18, weight: .light))
                 .foregroundColor(.white)
                 .textFieldStyle(.plain)
                 .focused($searchFocused)

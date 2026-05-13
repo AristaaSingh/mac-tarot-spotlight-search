@@ -1,9 +1,5 @@
 import Foundation
 
-// Manages loading card content from ~/Documents/TarotApp/cards.json.
-// On first launch it writes a template with all 78 cards so the user
-// can open the file and fill in their interpretations.
-
 struct CardContent: Codable {
     var upright:      String
     var reversed:     String
@@ -12,53 +8,61 @@ struct CardContent: Codable {
 
 class ContentStore {
     static let shared = ContentStore()
+    private init() {}
 
-    private var store: [String: CardContent] = [:]
+    private static let base: URL = {
+        FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Desktop/Programming/tarot-app/card-content")
+    }()
 
-    private init() {
-        ensureTemplateExists()
-        load()
+    // MARK: - Public
+
+    func content(for card: TarotCard) -> CardContent {
+        let url = Self.fileURL(for: card)
+        guard let text = try? String(contentsOf: url, encoding: .utf8) else {
+            return CardContent(upright: "", reversed: "", personalNote: "")
+        }
+        return parse(text)
     }
 
-    func content(for id: String) -> CardContent {
-        store[id] ?? CardContent(upright: "", reversed: "", personalNote: "")
+    // MARK: - File path
+
+    static func fileURL(for card: TarotCard) -> URL {
+        let subfolder: String
+        switch card.arcana {
+        case .major: subfolder = "major-arcana"
+        case .minor: subfolder = card.suit.rawValue.lowercased()
+        }
+        return base
+            .appendingPathComponent(subfolder)
+            .appendingPathComponent("\(card.id).md")
     }
 
-    // MARK: - File location
+    // MARK: - Markdown parser
 
-    static var fileURL: URL {
-        let home = FileManager.default.homeDirectoryForCurrentUser
-        return home
-            .appendingPathComponent("Desktop/Programming/tarot-app/cards.json")
-    }
+    private func parse(_ text: String) -> CardContent {
+        var upright = "", reversed = "", notes = ""
+        var current = ""
 
-    // MARK: - Load
-
-    private func load() {
-        guard let data = try? Data(contentsOf: Self.fileURL),
-              let decoded = try? JSONDecoder().decode([String: CardContent].self, from: data)
-        else { return }
-        store = decoded
-    }
-
-    // MARK: - Template
-
-    private func ensureTemplateExists() {
-        let url = Self.fileURL
-        guard !FileManager.default.fileExists(atPath: url.path) else { return }
-
-        try? FileManager.default.createDirectory(at: Self.fileURL.deletingLastPathComponent(),
-                                                 withIntermediateDirectories: true)
-        let template = Dictionary(uniqueKeysWithValues: allCards.map {
-            ($0.id, CardContent(upright: "", reversed: "", personalNote: ""))
-        })
-        if let data = try? JSONEncoder().encode(template) {
-            // Pretty-print so it's easy to read in a text editor
-            if let obj = try? JSONSerialization.jsonObject(with: data),
-               let pretty = try? JSONSerialization.data(withJSONObject: obj,
-                                                         options: [.prettyPrinted, .sortedKeys]) {
-                try? pretty.write(to: url)
+        for line in text.components(separatedBy: "\n") {
+            switch line.trimmingCharacters(in: .whitespaces) {
+            case "## Upright":   current = "upright"
+            case "## Reversed":  current = "reversed"
+            case "## My Notes":  current = "notes"
+            default:
+                switch current {
+                case "upright":  upright  += line + "\n"
+                case "reversed": reversed += line + "\n"
+                case "notes":    notes    += line + "\n"
+                default: break
+                }
             }
         }
+
+        return CardContent(
+            upright:      upright.trimmingCharacters(in: .whitespacesAndNewlines),
+            reversed:     reversed.trimmingCharacters(in: .whitespacesAndNewlines),
+            personalNote: notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
     }
 }

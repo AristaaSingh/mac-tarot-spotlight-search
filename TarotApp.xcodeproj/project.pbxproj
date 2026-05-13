@@ -12,10 +12,10 @@
 		20F89B3E2FBA428563F4174B /* SearchResultRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00B7BE7C2E3A6766BEA609DF /* SearchResultRow.swift */; };
 		23F294F186D091D999A3CFCC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5C8FF89CD3C299500052AAFB /* Assets.xcassets */; };
 		454A17797CAF7860248E5A44 /* CardThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFC4BFDEF69FD279DC638105 /* CardThumbnailView.swift */; };
+		495E5DDA839B7AAD291CD81E /* dreamy-banner.gif in Resources */ = {isa = PBXBuildFile; fileRef = 8649834877860963BEEFA942 /* dreamy-banner.gif */; };
 		4E8D61BC6201756F99C28BA0 /* TarotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D0834B607D9E69DEE8C0DEB /* TarotApp.swift */; };
 		54C101229243BF2C6DA8153B /* CardPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FB2FBAB4D5F9580FD161AE /* CardPopupView.swift */; };
 		57118D9F83B701D47C04327A /* Cards in Resources */ = {isa = PBXBuildFile; fileRef = 65F9D6C6DC874B4D95EE5A06 /* Cards */; };
-		582E923A4870650713B787F8 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A209B081B4A8191767A9D0FF /* HotkeyManager.swift */; };
 		5C70BA0793AAF4EC4C5AC563 /* CardContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CA408FA70366ACA90695D5F /* CardContentView.swift */; };
 		7A487D1ACDBE5E2853772FD2 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EB80078ED6E7C4C705CBA57 /* Cocoa.framework */; };
 		837F91456E3AE0BA8F2698D9 /* TarotCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29E5FA0A830555929D953EDB /* TarotCard.swift */; };
@@ -23,8 +23,11 @@
 		8E87593480A954581F78A59E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC87CE005824D625BBA55DA /* AppDelegate.swift */; };
 		91FDA137CC83023583F339EA /* ContentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84D013B3C56F7EB631186513 /* ContentStore.swift */; };
 		95301734F9525C12124C2CEB /* ThumbnailWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3221B4DD44C2281BC645E73F /* ThumbnailWindowManager.swift */; };
+		981F77DD199B8F1E5A1B1117 /* CardTransitionAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9481FD0BE9C14425A169581C /* CardTransitionAnimator.swift */; };
+		A32A77B023E567ECF8B3D94C /* Font+App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC22BA2E50261EEFBD07A5A /* Font+App.swift */; };
 		A3BA099F652D81C94DE85D7B /* OverlayWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C06B60F82CCF46E5C95C3AD /* OverlayWindowController.swift */; };
 		AFA31FD7D9D556DFB6CAE53F /* SparkleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73EA46C86AB314427CA81BAD /* SparkleView.swift */; };
+		CAFB75F5FBFF4C9BD20BF8A3 /* AnimatedGIFView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90010721339F24A2D616A50 /* AnimatedGIFView.swift */; };
 		D51A45F193E70FABB08F060F /* CardData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D47B5E58D0C47D0C749D63 /* CardData.swift */; };
 		D9811D6B05C0695BB24E925A /* CardPopupWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D6D73C4613D9F3B82EE8935 /* CardPopupWindowController.swift */; };
 /* End PBXBuildFile section */
@@ -32,6 +35,7 @@
 /* Begin PBXFileReference section */
 		00B7BE7C2E3A6766BEA609DF /* SearchResultRow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchResultRow.swift; sourceTree = "<group>"; };
 		0D7560C290B608359BE2A36D /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		1DC22BA2E50261EEFBD07A5A /* Font+App.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "Font+App.swift"; sourceTree = "<group>"; };
 		29E5FA0A830555929D953EDB /* TarotCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TarotCard.swift; sourceTree = "<group>"; };
 		3221B4DD44C2281BC645E73F /* ThumbnailWindowManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThumbnailWindowManager.swift; sourceTree = "<group>"; };
 		3B853BB9300056187F392DD6 /* CardDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardDetailView.swift; sourceTree = "<group>"; };
@@ -46,9 +50,11 @@
 		6C06B60F82CCF46E5C95C3AD /* OverlayWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OverlayWindowController.swift; sourceTree = "<group>"; };
 		73EA46C86AB314427CA81BAD /* SparkleView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SparkleView.swift; sourceTree = "<group>"; };
 		84D013B3C56F7EB631186513 /* ContentStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentStore.swift; sourceTree = "<group>"; };
+		8649834877860963BEEFA942 /* dreamy-banner.gif */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.gif; path = "dreamy-banner.gif"; sourceTree = "<group>"; };
 		8D0834B607D9E69DEE8C0DEB /* TarotApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TarotApp.swift; sourceTree = "<group>"; };
 		8D6D73C4613D9F3B82EE8935 /* CardPopupWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardPopupWindowController.swift; sourceTree = "<group>"; };
-		A209B081B4A8191767A9D0FF /* HotkeyManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
+		9481FD0BE9C14425A169581C /* CardTransitionAnimator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardTransitionAnimator.swift; sourceTree = "<group>"; };
+		A90010721339F24A2D616A50 /* AnimatedGIFView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnimatedGIFView.swift; sourceTree = "<group>"; };
 		B2616B2C427566061D1D8346 /* SearchOverlayView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchOverlayView.swift; sourceTree = "<group>"; };
 		CFC4BFDEF69FD279DC638105 /* CardThumbnailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardThumbnailView.swift; sourceTree = "<group>"; };
 		F4FB2FBAB4D5F9580FD161AE /* CardPopupView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardPopupView.swift; sourceTree = "<group>"; };
@@ -86,6 +92,7 @@
 				F4FB2FBAB4D5F9580FD161AE /* CardPopupView.swift */,
 				3CA408FA70366ACA90695D5F /* CardContentView.swift */,
 				CFC4BFDEF69FD279DC638105 /* CardThumbnailView.swift */,
+				A90010721339F24A2D616A50 /* AnimatedGIFView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -115,13 +122,15 @@
 				8D0834B607D9E69DEE8C0DEB /* TarotApp.swift */,
 				4DC87CE005824D625BBA55DA /* AppDelegate.swift */,
 				6C06B60F82CCF46E5C95C3AD /* OverlayWindowController.swift */,
-				A209B081B4A8191767A9D0FF /* HotkeyManager.swift */,
 				5C8FF89CD3C299500052AAFB /* Assets.xcassets */,
 				61F2E92311DD68A6A85B8E5B /* Info.plist */,
 				8D6D73C4613D9F3B82EE8935 /* CardPopupWindowController.swift */,
 				65F9D6C6DC874B4D95EE5A06 /* Cards */,
 				84D013B3C56F7EB631186513 /* ContentStore.swift */,
 				3221B4DD44C2281BC645E73F /* ThumbnailWindowManager.swift */,
+				9481FD0BE9C14425A169581C /* CardTransitionAnimator.swift */,
+				1DC22BA2E50261EEFBD07A5A /* Font+App.swift */,
+				C2E9E8375BFFC8BC39E5B416 /* Resources */,
 			);
 			path = TarotApp;
 			sourceTree = "<group>";
@@ -141,6 +150,15 @@
 				0D7560C290B608359BE2A36D /* Cocoa.framework */,
 			);
 			name = "OS X";
+			sourceTree = "<group>";
+		};
+		C2E9E8375BFFC8BC39E5B416 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				8649834877860963BEEFA942 /* dreamy-banner.gif */,
+			);
+			name = Resources;
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -198,6 +216,7 @@
 			files = (
 				23F294F186D091D999A3CFCC /* Assets.xcassets in Resources */,
 				57118D9F83B701D47C04327A /* Cards in Resources */,
+				495E5DDA839B7AAD291CD81E /* dreamy-banner.gif in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -211,7 +230,6 @@
 				4E8D61BC6201756F99C28BA0 /* TarotApp.swift in Sources */,
 				8E87593480A954581F78A59E /* AppDelegate.swift in Sources */,
 				A3BA099F652D81C94DE85D7B /* OverlayWindowController.swift in Sources */,
-				582E923A4870650713B787F8 /* HotkeyManager.swift in Sources */,
 				837F91456E3AE0BA8F2698D9 /* TarotCard.swift in Sources */,
 				D51A45F193E70FABB08F060F /* CardData.swift in Sources */,
 				8D36E1F4F613970FC8D06438 /* SearchOverlayView.swift in Sources */,
@@ -224,6 +242,9 @@
 				5C70BA0793AAF4EC4C5AC563 /* CardContentView.swift in Sources */,
 				454A17797CAF7860248E5A44 /* CardThumbnailView.swift in Sources */,
 				95301734F9525C12124C2CEB /* ThumbnailWindowManager.swift in Sources */,
+				981F77DD199B8F1E5A1B1117 /* CardTransitionAnimator.swift in Sources */,
+				CAFB75F5FBFF4C9BD20BF8A3 /* AnimatedGIFView.swift in Sources */,
+				A32A77B023E567ECF8B3D94C /* Font+App.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

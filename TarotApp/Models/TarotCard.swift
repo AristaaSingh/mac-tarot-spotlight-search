@@ -36,10 +36,17 @@ struct TarotCard: Identifiable, Codable {
     }
 
     var displayNumber: String {
-        switch arcana {
-        case .major: return number == 0 ? "0" : "\(number)"
-        case .minor: return "\(number)"
+        number == 0 ? "0" : Self.toRoman(number)
+    }
+
+    private static func toRoman(_ n: Int) -> String {
+        let values = [1000,900,500,400,100,90,50,40,10,9,5,4,1]
+        let glyphs  = ["M","CM","D","CD","C","XC","L","XL","X","IX","V","IV","I"]
+        var result = "", n = n
+        for (v, g) in zip(values, glyphs) {
+            while n >= v { result += g; n -= v }
         }
+        return result
     }
 
     var suitSymbol: String {

@@ -20,13 +20,9 @@
 	<string>1</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
-	<key>LSUIElement</key>
-	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string></string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
-	<key>NSAccessibilityUsageDescription</key>
-	<string>Tarot needs Accessibility access to register the global hotkey (⌥Space) so you can open the card search from any app.</string>
 </dict>
 </plist>
