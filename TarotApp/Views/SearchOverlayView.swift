@@ -12,10 +12,7 @@ struct SearchOverlayView: View {
         return allCards.filter { card in
             let nameLower = card.name.lowercased()
             let sig = nameLower.hasPrefix("the ") ? String(nameLower.dropFirst(4)) : nameLower
-            return sig.contains(q)
-                || nameLower.contains(q)
-                || card.suit.rawValue.lowercased().hasPrefix(q)
-                || card.keywords.contains(where: { $0.lowercased().contains(q) })
+            return sig.contains(q) || nameLower.contains(q)
         }
     }
 
@@ -25,7 +22,7 @@ struct SearchOverlayView: View {
                 .frame(width: OverlayWindowController.panelWidth,
                        height: OverlayWindowController.panelHeight)
                 .clipped()
-            Color.black.opacity(0.35)
+            Color.black.opacity(0.25)
 
             searchBar
         }
@@ -61,14 +58,16 @@ struct SearchOverlayView: View {
         HStack(spacing: 12) {
             Image(systemName: "moon.stars.fill")
                 .font(.app(16))
-                .foregroundColor(Color(red: 0.75, green: 0.6, blue: 1))
+                .foregroundColor(.white)
 
-            TextField("Search cards…", text: $query)
+            TextField("", text: $query, prompt: Text("Search cards…").foregroundColor(.white.opacity(0.85)))
                 .font(.app(18, weight: .light))
                 .foregroundColor(.white)
                 .textFieldStyle(.plain)
                 .focused($searchFocused)
-                .onSubmit { }
+                .onSubmit {
+                    if let first = results.first { openCard(first) }
+                }
                 .onKeyPress(.escape) { handleEscape(); return .handled }
 
             if !query.isEmpty {
@@ -81,6 +80,11 @@ struct SearchOverlayView: View {
         }
         .padding(.horizontal, 20)
         .frame(height: OverlayWindowController.panelHeight)
+    }
+
+    private func openCard(_ card: TarotCard) {
+        OverlayWindowController.shared.hide()
+        CardPopupManager.shared.open(card: card)
     }
 
     private func handleEscape() {
