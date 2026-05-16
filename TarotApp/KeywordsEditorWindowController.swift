@@ -10,10 +10,12 @@ class KeywordsState: ObservableObject {
 class KeywordsEditorWindowController: NSWindowController, NSWindowDelegate {
 
     private var fieldEditor: AppTextView?
+    private weak var hosting: NSView?
     private static let cursorColor = NSColor(red: 0.278, green: 0, blue: 0.102, alpha: 1)
 
-    static let windowW: CGFloat = 480
-    static let windowH: CGFloat = 420
+    static let windowW: CGFloat = 360
+    static let minH:    CGFloat = 200
+    static let maxH:    CGFloat = 520
 
     private let state: KeywordsState
 
@@ -21,7 +23,7 @@ class KeywordsEditorWindowController: NSWindowController, NSWindowDelegate {
         self.state = KeywordsState(initialKeywords)
 
         let win = KeyableWindow(
-            contentRect: NSRect(x: 0, y: 0, width: Self.windowW, height: Self.windowH),
+            contentRect: NSRect(x: 0, y: 0, width: Self.windowW, height: Self.minH),
             styleMask: [.borderless],
             backing: .buffered,
             defer: false
@@ -38,17 +40,16 @@ class KeywordsEditorWindowController: NSWindowController, NSWindowDelegate {
 
         let view = KeywordsEditorView(
             cardName: cardName,
-            onChanged: onChanged,
+            onChanged: { [weak self] kws in
+                onChanged(kws)
+                DispatchQueue.main.async { self?.resize(animated: true) }
+            },
             onClose: { [weak self] in self?.animateClose() },
             state: state
         )
-        win.contentView = NSHostingView(rootView: view)
-
-        if let screen = NSScreen.main {
-            let sf = screen.visibleFrame
-            win.setFrameOrigin(NSPoint(x: sf.midX - Self.windowW / 2,
-                                       y: sf.midY - Self.windowH / 2))
-        }
+        let h = NSHostingView(rootView: view)
+        hosting = h
+        win.contentView = h
     }
 
     required init?(coder: NSCoder) { fatalError() }
@@ -63,6 +64,24 @@ class KeywordsEditorWindowController: NSWindowController, NSWindowDelegate {
         return fieldEditor
     }
 
+    private func resize(animated: Bool) {
+        guard let win = window, let h = hosting else { return }
+        h.layout()
+        let newH = max(Self.minH, min(Self.maxH, h.fittingSize.height))
+        var frame = win.frame
+        frame.origin.y = frame.maxY - newH
+        frame.size.height = newH
+        if animated {
+            NSAnimationContext.runAnimationGroup { ctx in
+                ctx.duration = 0.2
+                ctx.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                win.animator().setFrame(frame, display: true)
+            }
+        } else {
+            win.setFrame(frame, display: false)
+        }
+    }
+
     func animateClose() {
         state.isClosing = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
@@ -74,6 +93,13 @@ class KeywordsEditorWindowController: NSWindowController, NSWindowDelegate {
         window?.alphaValue = 0
         window?.orderFrontRegardless()
         window?.makeKey()
+        // Size to content first (invisible), then center, then fade in
+        resize(animated: false)
+        if let screen = NSScreen.main, let win = window {
+            let sf = screen.visibleFrame
+            win.setFrameOrigin(NSPoint(x: sf.midX - Self.windowW / 2,
+                                       y: sf.midY - win.frame.height / 2))
+        }
         NSAnimationContext.runAnimationGroup { ctx in
             ctx.duration = 0.2
             ctx.timingFunction = CAMediaTimingFunction(name: .easeOut)
@@ -203,7 +229,7 @@ private struct KeywordsEditorView: View {
                 .padding(.horizontal, 28)
 
                 // Keywords pills
-                ScrollView(.vertical, showsIndicators: false) {
+                if !state.keywords.isEmpty {
                     FlowLayout(spacing: 8) {
                         ForEach(state.keywords, id: \.self) { kw in
                             KeywordPill(text: kw) {
@@ -216,13 +242,11 @@ private struct KeywordsEditorView: View {
                     .padding(.top, 16)
                     .padding(.bottom, 20)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .clipShape(RoundedRectangle(cornerRadius: 24))
         .opacity(appeared ? 1 : 0)
-        .frame(width: KeywordsEditorWindowController.windowW,
-               height: KeywordsEditorWindowController.windowH)
+        .frame(width: KeywordsEditorWindowController.windowW)
         .onAppear {
             withAnimation(.easeOut(duration: 0.2)) { appeared = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { fieldFocused = true }
