@@ -20,6 +20,7 @@ class CardPopupWindowController: NSWindowController, NSWindowDelegate {
 
     private var eventMonitor: Any?
     var currentEditor: ContentEditorWindowController?
+    var keywordsEditor: KeywordsEditorWindowController?
 
     static let cardDisplayW: CGFloat = 220
     static let cardDisplayH: CGFloat = 330
@@ -51,7 +52,8 @@ class CardPopupWindowController: NSWindowController, NSWindowDelegate {
         let view = CardDetailPopupView(
             card: card,
             onClose: { [weak self] in self?.window?.close() },
-            onEditorOpened: { [weak self] editor in self?.currentEditor = editor }
+            onEditorOpened: { [weak self] editor in self?.currentEditor = editor },
+            onKeywordsEditorOpened: { [weak self] editor in self?.keywordsEditor = editor }
         )
         let hosting = NSHostingView(rootView: view)
         hosting.wantsLayer = true
@@ -79,6 +81,9 @@ class CardPopupWindowController: NSWindowController, NSWindowDelegate {
             if let editor = self?.currentEditor, editor.window?.isVisible == true {
                 editor.saveAndClose()
                 self?.currentEditor = nil
+            } else if let kw = self?.keywordsEditor, kw.window?.isVisible == true {
+                kw.animateClose()
+                self?.keywordsEditor = nil
             } else {
                 self?.window?.close()
             }
@@ -98,9 +103,10 @@ class CardPopupWindowController: NSWindowController, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
-        // Save and close any open editor before this window goes away
         currentEditor?.saveAndClose()
         currentEditor = nil
+        keywordsEditor?.animateClose()
+        keywordsEditor = nil
         if let m = eventMonitor { NSEvent.removeMonitor(m); eventMonitor = nil }
         CardPopupManager.shared.remove(self)
     }

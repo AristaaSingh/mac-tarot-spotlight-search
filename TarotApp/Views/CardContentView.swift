@@ -22,10 +22,11 @@ struct CardDetailPopupView: View {
     let card: TarotCard
     let onClose: () -> Void
     let onEditorOpened: (ContentEditorWindowController) -> Void
+    let onKeywordsEditorOpened: (KeywordsEditorWindowController) -> Void
 
     @State private var isReversed = false
     @State private var appeared   = false
-    @State private var content    = CardContent(upright: "", reversed: "", personalNote: "")
+    @State private var content    = CardContent(upright: "", reversed: "", personalNote: "", keywords: [])
     @State private var editorWindow: ContentEditorWindowController?
 
     private func p<T>(_ upright: T, _ reversed: T) -> T { isReversed ? reversed : upright }
@@ -102,15 +103,30 @@ struct CardDetailPopupView: View {
                     }
 
                     // Keywords
-                    FlowLayout(spacing: 6) {
-                        ForEach(card.keywords, id: \.self) { kw in
-                            Text(kw)
-                                .font(.app(12))
-                                .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 4)
-                                .background(p(Palette.uprightAccentBg, Palette.reversedAccentBg))
-                                .clipShape(Capsule())
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 6) {
+                            sectionLabel("Keywords", icon: "tag")
+                            Button(action: openKeywordsEditor) {
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 9, weight: .medium))
+                                    .foregroundColor(p(Palette.uprightFaint, Palette.reversedFaint))
+                                    .frame(width: 18, height: 18)
+                                    .background(p(Palette.uprightAccentBg, Palette.reversedAccentBg))
+                                    .clipShape(Circle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        let effectiveKeywords = content.keywords.isEmpty ? card.keywords : content.keywords
+                        FlowLayout(spacing: 6) {
+                            ForEach(effectiveKeywords, id: \.self) { kw in
+                                Text(kw)
+                                    .font(.app(12))
+                                    .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 4)
+                                    .background(p(Palette.uprightAccentBg, Palette.reversedAccentBg))
+                                    .clipShape(Capsule())
+                            }
                         }
                     }
 
@@ -178,6 +194,18 @@ struct CardDetailPopupView: View {
     }
 
     // MARK: - Helpers
+
+    private func openKeywordsEditor() {
+        let initial = content.keywords.isEmpty ? card.keywords : content.keywords
+        let editor = KeywordsEditorWindowController(cardName: card.name, initialKeywords: initial) { updated in
+            var c = content
+            c.keywords = updated
+            ContentStore.shared.save(c, for: card)
+            content = c
+        }
+        onKeywordsEditorOpened(editor)
+        editor.show()
+    }
 
     private func openEditor(section: String) {
         let initial = section == "Upright" ? content.upright : content.reversed

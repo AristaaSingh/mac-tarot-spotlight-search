@@ -23,3 +23,9 @@ scroll test
 
 ## My Notes
 
+
+## Keywords
+innocence
+adventure
+spontaneity
+new beginnings

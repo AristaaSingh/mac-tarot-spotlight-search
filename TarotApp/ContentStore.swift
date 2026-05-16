@@ -4,6 +4,7 @@ struct CardContent: Codable {
     var upright:      String
     var reversed:     String
     var personalNote: String
+    var keywords:     [String]  // empty = fall back to TarotCard.keywords
 }
 
 class ContentStore {
@@ -20,7 +21,7 @@ class ContentStore {
     func content(for card: TarotCard) -> CardContent {
         let url = Self.fileURL(for: card)
         guard let text = try? String(contentsOf: url, encoding: .utf8) else {
-            return CardContent(upright: "", reversed: "", personalNote: "")
+            return CardContent(upright: "", reversed: "", personalNote: "", keywords: [])
         }
         return parse(text)
     }
@@ -42,7 +43,10 @@ class ContentStore {
 
     func save(_ content: CardContent, for card: TarotCard) {
         let url = Self.fileURL(for: card)
-        let text = "## Upright\n\(content.upright)\n\n## Reversed\n\(content.reversed)\n\n## My Notes\n\(content.personalNote)\n"
+        var text = "## Upright\n\(content.upright)\n\n## Reversed\n\(content.reversed)\n\n## My Notes\n\(content.personalNote)\n"
+        if !content.keywords.isEmpty {
+            text += "\n## Keywords\n\(content.keywords.joined(separator: "\n"))\n"
+        }
         try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(),
                                                   withIntermediateDirectories: true)
         try? text.write(to: url, atomically: true, encoding: .utf8)
@@ -52,6 +56,7 @@ class ContentStore {
 
     private func parse(_ text: String) -> CardContent {
         var upright = "", reversed = "", notes = ""
+        var keywords: [String] = []
         var current = ""
 
         for line in text.components(separatedBy: "\n") {
@@ -59,11 +64,15 @@ class ContentStore {
             case "## Upright":   current = "upright"
             case "## Reversed":  current = "reversed"
             case "## My Notes":  current = "notes"
+            case "## Keywords":  current = "keywords"
             default:
+                let trimmed = line.trimmingCharacters(in: .whitespaces)
                 switch current {
                 case "upright":  upright  += line + "\n"
                 case "reversed": reversed += line + "\n"
                 case "notes":    notes    += line + "\n"
+                case "keywords":
+                    if !trimmed.isEmpty { keywords.append(trimmed) }
                 default: break
                 }
             }
@@ -72,7 +81,8 @@ class ContentStore {
         return CardContent(
             upright:      upright.trimmingCharacters(in: .whitespacesAndNewlines),
             reversed:     reversed.trimmingCharacters(in: .whitespacesAndNewlines),
-            personalNote: notes.trimmingCharacters(in: .whitespacesAndNewlines)
+            personalNote: notes.trimmingCharacters(in: .whitespacesAndNewlines),
+            keywords:     keywords
         )
     }
 }

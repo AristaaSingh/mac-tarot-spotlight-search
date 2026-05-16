@@ -11,6 +11,7 @@
 		191A9369F777B6224CB50644 /* ContentEditorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D7B32ABBEC0A0EBBB48CCCC /* ContentEditorWindowController.swift */; };
 		23F294F186D091D999A3CFCC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5C8FF89CD3C299500052AAFB /* Assets.xcassets */; };
 		454A17797CAF7860248E5A44 /* CardThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFC4BFDEF69FD279DC638105 /* CardThumbnailView.swift */; };
+		488F7CCFAEFD54D754E07268 /* KeywordsEditorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A19C76503213452F5DFC /* KeywordsEditorWindowController.swift */; };
 		495E5DDA839B7AAD291CD81E /* dreamy-banner.gif in Resources */ = {isa = PBXBuildFile; fileRef = 8649834877860963BEEFA942 /* dreamy-banner.gif */; };
 		4E8D61BC6201756F99C28BA0 /* TarotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D0834B607D9E69DEE8C0DEB /* TarotApp.swift */; };
 		57118D9F83B701D47C04327A /* Cards in Resources */ = {isa = PBXBuildFile; fileRef = 65F9D6C6DC874B4D95EE5A06 /* Cards */; };
@@ -52,6 +53,7 @@
 		B2616B2C427566061D1D8346 /* SearchOverlayView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchOverlayView.swift; sourceTree = "<group>"; };
 		B95833A7D362CC6138BCBAC7 /* FlowLayout.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
 		CFC4BFDEF69FD279DC638105 /* CardThumbnailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardThumbnailView.swift; sourceTree = "<group>"; };
+		D0B6A19C76503213452F5DFC /* KeywordsEditorWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeywordsEditorWindowController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +124,7 @@
 				1DC22BA2E50261EEFBD07A5A /* Font+App.swift */,
 				C2E9E8375BFFC8BC39E5B416 /* Resources */,
 				8D7B32ABBEC0A0EBBB48CCCC /* ContentEditorWindowController.swift */,
+				D0B6A19C76503213452F5DFC /* KeywordsEditorWindowController.swift */,
 			);
 			path = TarotApp;
 			sourceTree = "<group>";
@@ -233,6 +236,7 @@
 				A32A77B023E567ECF8B3D94C /* Font+App.swift in Sources */,
 				90F53FD1F394EF1463CDC5EB /* FlowLayout.swift in Sources */,
 				191A9369F777B6224CB50644 /* ContentEditorWindowController.swift in Sources */,
+				488F7CCFAEFD54D754E07268 /* KeywordsEditorWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
