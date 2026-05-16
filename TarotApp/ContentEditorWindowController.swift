@@ -99,6 +99,7 @@ class ContentEditorWindowController: NSWindowController {
 
     private let state: EditorState
     private let onSave: (String) -> Void
+    private var eventMonitor: Any?
 
     init(cardName: String, section: String, initialText: String, onSave: @escaping (String) -> Void) {
         self.state  = EditorState(initialText)
@@ -144,6 +145,7 @@ class ContentEditorWindowController: NSWindowController {
     }
 
     private func animateClose() {
+        removeMonitor()
         state.isClosing = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.38) { [weak self] in
             self?.window?.close()
@@ -159,6 +161,17 @@ class ContentEditorWindowController: NSWindowController {
             ctx.timingFunction = CAMediaTimingFunction(name: .easeOut)
             window?.animator().alphaValue = 1
         }
+        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            if event.keyCode == 1 && event.modifierFlags.contains(.command) {
+                self?.saveAndClose()
+                return nil
+            }
+            return event
+        }
+    }
+
+    private func removeMonitor() {
+        if let m = eventMonitor { NSEvent.removeMonitor(m); eventMonitor = nil }
     }
 }
 
