@@ -101,6 +101,19 @@ struct CardDetailPopupView: View {
                         }
                     }
 
+                    // Keywords
+                    FlowLayout(spacing: 6) {
+                        ForEach(card.keywords, id: \.self) { kw in
+                            Text(kw)
+                                .font(.app(12))
+                                .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(p(Palette.uprightAccentBg, Palette.reversedAccentBg))
+                                .clipShape(Capsule())
+                        }
+                    }
+
                     Divider().background(p(Palette.uprightDivider, Palette.reversedDivider))
 
                     // Meaning
@@ -115,24 +128,6 @@ struct CardDetailPopupView: View {
                         Divider().background(p(Palette.uprightDivider, Palette.reversedDivider))
                         meaningSection(title: "My Notes", icon: "moon.stars",
                                        text: content.personalNote)
-                    }
-
-                    Divider().background(p(Palette.uprightDivider, Palette.reversedDivider))
-
-                    // Keywords
-                    VStack(alignment: .leading, spacing: 8) {
-                        sectionLabel("Keywords", icon: "tag")
-                        FlowLayout(spacing: 6) {
-                            ForEach(card.keywords, id: \.self) { kw in
-                                Text(kw)
-                                    .font(.app(12))
-                                    .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 4)
-                                    .background(p(Palette.uprightAccentBg, Palette.reversedAccentBg))
-                                    .clipShape(Capsule())
-                            }
-                        }
                     }
 
                     Spacer(minLength: 16)
