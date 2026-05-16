@@ -4,7 +4,8 @@ struct SearchOverlayView: View {
     @State private var query = ""
     @State private var debouncedQuery = ""
     @State private var debounceTimer: Timer?
-    @FocusState private var searchFocused: Bool
+    @State private var searchFocused = false
+    private let nsWhite = NSColor.white
 
     private let digitWords: [(String, String)] = [
         ("10", "ten"), ("2", "two"), ("3", "three"), ("4", "four"), ("5", "five"),
@@ -74,23 +75,16 @@ struct SearchOverlayView: View {
                 .font(.app(16))
                 .foregroundColor(.white)
 
-            ZStack(alignment: .leading) {
-                if query.isEmpty {
-                    Text("Search cards…")
-                        .font(.app(18, weight: .light))
-                        .foregroundColor(.white)
-                        .allowsHitTesting(false)
-                }
-                TextField("", text: $query)
-                    .font(.app(18, weight: .light))
-                    .foregroundColor(.white)
-                    .textFieldStyle(.plain)
-                    .focused($searchFocused)
-                    .onSubmit {
-                        if let first = results.first { openCard(first) }
-                    }
-                    .onKeyPress(.escape) { handleEscape(); return .handled }
-            }
+            ThemedTextField(
+                text: $query,
+                placeholder: "Search cards…",
+                nsFont: NSFont(name: "Didot", size: 18) ?? .systemFont(ofSize: 18),
+                textColor: nsWhite,
+                cursorColor: nsWhite,
+                isFocused: searchFocused,
+                onSubmit: { if let first = results.first { openCard(first) } },
+                onEscape: { handleEscape() }
+            )
 
             if !query.isEmpty {
                 Button { query = ""; debouncedQuery = "" } label: {

@@ -28,6 +28,7 @@
 		CAFB75F5FBFF4C9BD20BF8A3 /* AnimatedGIFView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90010721339F24A2D616A50 /* AnimatedGIFView.swift */; };
 		D51A45F193E70FABB08F060F /* CardData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D47B5E58D0C47D0C749D63 /* CardData.swift */; };
 		D9811D6B05C0695BB24E925A /* CardPopupWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D6D73C4613D9F3B82EE8935 /* CardPopupWindowController.swift */; };
+		DE6C77075979D897A55F13C2 /* AppTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D041D87970957C69FA510AB /* AppTextView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +50,7 @@
 		8D0834B607D9E69DEE8C0DEB /* TarotApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TarotApp.swift; sourceTree = "<group>"; };
 		8D6D73C4613D9F3B82EE8935 /* CardPopupWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardPopupWindowController.swift; sourceTree = "<group>"; };
 		8D7B32ABBEC0A0EBBB48CCCC /* ContentEditorWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentEditorWindowController.swift; sourceTree = "<group>"; };
+		9D041D87970957C69FA510AB /* AppTextView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppTextView.swift; sourceTree = "<group>"; };
 		A90010721339F24A2D616A50 /* AnimatedGIFView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnimatedGIFView.swift; sourceTree = "<group>"; };
 		B2616B2C427566061D1D8346 /* SearchOverlayView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchOverlayView.swift; sourceTree = "<group>"; };
 		B95833A7D362CC6138BCBAC7 /* FlowLayout.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
@@ -125,6 +127,7 @@
 				C2E9E8375BFFC8BC39E5B416 /* Resources */,
 				8D7B32ABBEC0A0EBBB48CCCC /* ContentEditorWindowController.swift */,
 				D0B6A19C76503213452F5DFC /* KeywordsEditorWindowController.swift */,
+				9D041D87970957C69FA510AB /* AppTextView.swift */,
 			);
 			path = TarotApp;
 			sourceTree = "<group>";
@@ -237,6 +240,7 @@
 				90F53FD1F394EF1463CDC5EB /* FlowLayout.swift in Sources */,
 				191A9369F777B6224CB50644 /* ContentEditorWindowController.swift in Sources */,
 				488F7CCFAEFD54D754E07268 /* KeywordsEditorWindowController.swift in Sources */,
+				DE6C77075979D897A55F13C2 /* AppTextView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

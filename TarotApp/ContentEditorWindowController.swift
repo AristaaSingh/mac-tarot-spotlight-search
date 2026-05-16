@@ -12,29 +12,13 @@ private class KeyableWindow: NSWindow {
     override var canBecomeKey: Bool { true }
 }
 
-private class StyledTextView: NSTextView {
-    override func viewDidMoveToWindow() {
-        super.viewDidMoveToWindow()
-        window?.makeFirstResponder(self)
-    }
-
-    override func drawInsertionPoint(in rect: NSRect, color: NSColor, turnedOn flag: Bool) {
-        guard flag else { return }
-        color.setFill()
-        NSRect(x: rect.minX, y: rect.minY, width: 1, height: rect.height).fill()
-    }
-
-    override func setNeedsDisplay(_ rect: NSRect, avoidAdditionalLayout flag: Bool) {
-        super.setNeedsDisplay(rect, avoidAdditionalLayout: flag)
-    }
-}
-
-// MARK: - NSViewRepresentable wrapping StyledTextView
+// MARK: - NSViewRepresentable wrapping AppTextView
 
 struct StyledTextEditor: NSViewRepresentable {
     @Binding var text: String
     var nsFont: NSFont
     var textColor: NSColor
+    var cursorColor: NSColor
     var lineHeightMultiple: CGFloat
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -47,7 +31,7 @@ struct StyledTextEditor: NSViewRepresentable {
         textContainer.widthTracksTextView = true
         layoutMgr.addTextContainer(textContainer)
         textStorage.addLayoutManager(layoutMgr)
-        let textView = StyledTextView(frame: NSRect.zero, textContainer: textContainer)
+        let textView = AppTextView(frame: NSRect.zero, textContainer: textContainer)
         textView.isEditable = true
         textView.isRichText = false
         textView.isAutomaticQuoteSubstitutionEnabled = false
@@ -63,6 +47,7 @@ struct StyledTextEditor: NSViewRepresentable {
 
         let style = NSMutableParagraphStyle()
         style.lineSpacing = lineHeightMultiple
+        textView.insertionPointColor = cursorColor
         textView.typingAttributes = [
             .font: nsFont,
             .foregroundColor: textColor,
@@ -80,7 +65,7 @@ struct StyledTextEditor: NSViewRepresentable {
     }
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
-        guard let textView = scrollView.documentView as? StyledTextView else { return }
+        guard let textView = scrollView.documentView as? AppTextView else { return }
         if textView.string != text { textView.string = text }
     }
 
@@ -259,6 +244,7 @@ private struct ContentEditorView: View {
                     text: $state.text,
                     nsFont: NSFont(name: "Didot", size: 15) ?? .systemFont(ofSize: 15),
                     textColor: nsInk,
+                    cursorColor: nsInk,
                     lineHeightMultiple: 1.4
                 )
                 .padding(.horizontal, 28)

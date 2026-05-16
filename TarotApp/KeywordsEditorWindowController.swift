@@ -7,7 +7,10 @@ class KeywordsState: ObservableObject {
     init(_ keywords: [String]) { self.keywords = keywords }
 }
 
-class KeywordsEditorWindowController: NSWindowController {
+class KeywordsEditorWindowController: NSWindowController, NSWindowDelegate {
+
+    private var fieldEditor: AppTextView?
+    private static let cursorColor = NSColor(red: 0.278, green: 0, blue: 0.102, alpha: 1)
 
     static let windowW: CGFloat = 480
     static let windowH: CGFloat = 420
@@ -31,6 +34,7 @@ class KeywordsEditorWindowController: NSWindowController {
         win.collectionBehavior = [.canJoinAllSpaces]
 
         super.init(window: win)
+        win.delegate = self
 
         let view = KeywordsEditorView(
             cardName: cardName,
@@ -48,6 +52,16 @@ class KeywordsEditorWindowController: NSWindowController {
     }
 
     required init?(coder: NSCoder) { fatalError() }
+
+    func windowWillReturnFieldEditor(_ sender: NSWindow, to client: Any?) -> Any? {
+        if fieldEditor == nil {
+            let tv = AppTextView()
+            tv.isFieldEditor = true
+            tv.insertionPointColor = Self.cursorColor
+            fieldEditor = tv
+        }
+        return fieldEditor
+    }
 
     func animateClose() {
         state.isClosing = true
@@ -114,9 +128,11 @@ private struct KeywordsEditorView: View {
     let onClose: () -> Void
 
     @ObservedObject var state: KeywordsState
-    @State private var newKeyword = ""
-    @State private var appeared   = false
-    @FocusState private var fieldFocused: Bool
+    @State private var newKeyword   = ""
+    @State private var appeared     = false
+    @State private var fieldFocused = false
+
+    private let nsInk = NSColor(red: 0.278, green: 0, blue: 0.102, alpha: 1)
 
     private let ink      = Color(red: 0.278, green: 0, blue: 0.102)
     private let mid      = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.50)
@@ -160,19 +176,15 @@ private struct KeywordsEditorView: View {
 
                 // Add keyword field
                 HStack(spacing: 10) {
-                    ZStack(alignment: .leading) {
-                        if newKeyword.isEmpty {
-                            Text("Add a keyword…")
-                                .font(.app(14))
-                                .foregroundColor(ink.opacity(0.45))
-                        }
-                        TextField("", text: $newKeyword)
-                            .textFieldStyle(.plain)
-                            .font(.app(14))
-                            .foregroundColor(ink)
-                            .focused($fieldFocused)
-                            .onSubmit { addKeyword() }
-                    }
+                    ThemedTextField(
+                        text: $newKeyword,
+                        placeholder: "Add a keyword…",
+                        nsFont: NSFont(name: "Didot", size: 14) ?? .systemFont(ofSize: 14),
+                        textColor: nsInk,
+                        cursorColor: nsInk,
+                        isFocused: fieldFocused,
+                        onSubmit: { addKeyword() }
+                    )
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
                         .background(fieldBg)
