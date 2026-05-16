@@ -1,22 +1,5 @@
 ## Upright
-ts finally works
-saving test
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-scroll test
+me
 
 ## Reversed
 16 may 21:34 draft
@@ -24,8 +7,10 @@ scroll test
 ## My Notes
 
 
-## Keywords
-innocence
+## Keywords Upright
+new beginnings
 adventure
 spontaneity
-new beginnings
+
+## Keywords Reversed
+carelessness

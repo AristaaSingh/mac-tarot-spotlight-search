@@ -7,15 +7,35 @@ private struct Palette {
     static let uprightFaint    = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.38)
     static let uprightDivider  = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.18)
     static let uprightAccentBg = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.10)
-    static let uprightOverlay  = Color.white.opacity(0.40)
+    static let uprightBtnHover   = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.18)
+    static let uprightBtnPress   = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.28)
+    static let uprightOverlay    = Color.white.opacity(0.40)
 
     // Reversed: white on dark
-    static let reversedInk      = Color.white
+    static let reversedBtnHover  = Color.white.opacity(0.22)
+    static let reversedBtnPress  = Color.white.opacity(0.32)
+    static let reversedInk       = Color.white
     static let reversedMid      = Color.white.opacity(0.75)
     static let reversedFaint    = Color.white.opacity(0.45)
     static let reversedDivider  = Color.white.opacity(0.18)
     static let reversedAccentBg = Color.white.opacity(0.12)
     static let reversedOverlay  = Color.black.opacity(0.25)
+}
+
+private struct PencilButtonStyle: ButtonStyle {
+    let base:    Color
+    let hovered: Color
+    let pressed: Color
+    @State private var isHovered = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .background(configuration.isPressed ? pressed : (isHovered ? hovered : base))
+            .clipShape(Circle())
+            .animation(.easeOut(duration: 0.1), value: isHovered)
+            .animation(.easeOut(duration: 0.06), value: configuration.isPressed)
+            .onHover { isHovered = $0 }
+    }
 }
 
 struct CardDetailPopupView: View {
@@ -26,7 +46,7 @@ struct CardDetailPopupView: View {
 
     @State private var isReversed = false
     @State private var appeared   = false
-    @State private var content    = CardContent(upright: "", reversed: "", personalNote: "", keywords: [])
+    @State private var content    = CardContent(upright: "", reversed: "", personalNote: "", uprightKeywords: nil, reversedKeywords: nil)
     @State private var editorWindow: ContentEditorWindowController?
 
     private func p<T>(_ upright: T, _ reversed: T) -> T { isReversed ? reversed : upright }
@@ -111,12 +131,16 @@ struct CardDetailPopupView: View {
                                     .font(.system(size: 9, weight: .medium))
                                     .foregroundColor(p(Palette.uprightFaint, Palette.reversedFaint))
                                     .frame(width: 18, height: 18)
-                                    .background(p(Palette.uprightAccentBg, Palette.reversedAccentBg))
-                                    .clipShape(Circle())
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(PencilButtonStyle(
+                                base:    p(Palette.uprightAccentBg,  Palette.reversedAccentBg),
+                                hovered: p(Palette.uprightBtnHover,  Palette.reversedBtnHover),
+                                pressed: p(Palette.uprightBtnPress,  Palette.reversedBtnPress)
+                            ))
                         }
-                        let effectiveKeywords = content.keywords.isEmpty ? card.keywords : content.keywords
+                        let effectiveKeywords = isReversed
+                            ? (content.reversedKeywords ?? card.keywords)
+                            : (content.uprightKeywords  ?? card.keywords)
                         FlowLayout(spacing: 6) {
                             ForEach(effectiveKeywords, id: \.self) { kw in
                                 Text(kw)
@@ -196,10 +220,14 @@ struct CardDetailPopupView: View {
     // MARK: - Helpers
 
     private func openKeywordsEditor() {
-        let initial = content.keywords.isEmpty ? card.keywords : content.keywords
-        let editor = KeywordsEditorWindowController(cardName: card.name, initialKeywords: initial) { updated in
+        let initial = isReversed
+            ? (content.reversedKeywords ?? card.keywords)
+            : (content.uprightKeywords  ?? card.keywords)
+        let subtitle = isReversed ? "Keywords · Reversed" : "Keywords · Upright"
+        let editor = KeywordsEditorWindowController(cardName: card.name, subtitle: subtitle, initialKeywords: initial) { updated in
             var c = content
-            c.keywords = updated
+            if isReversed { c.reversedKeywords = updated }
+            else          { c.uprightKeywords  = updated }
             ContentStore.shared.save(c, for: card)
             content = c
         }
@@ -231,10 +259,12 @@ struct CardDetailPopupView: View {
                             .font(.system(size: 9, weight: .medium))
                             .foregroundColor(p(Palette.uprightFaint, Palette.reversedFaint))
                             .frame(width: 18, height: 18)
-                            .background(p(Palette.uprightAccentBg, Palette.reversedAccentBg))
-                            .clipShape(Circle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(PencilButtonStyle(
+                        base:    p(Palette.uprightAccentBg, Palette.reversedAccentBg),
+                        hovered: p(Palette.uprightBtnHover, Palette.reversedBtnHover),
+                        pressed: p(Palette.uprightBtnPress, Palette.reversedBtnPress)
+                    ))
                 }
             }
             if text.isEmpty && onEdit != nil {

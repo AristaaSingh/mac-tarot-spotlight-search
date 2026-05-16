@@ -19,7 +19,7 @@ class KeywordsEditorWindowController: NSWindowController, NSWindowDelegate {
 
     private let state: KeywordsState
 
-    init(cardName: String, initialKeywords: [String], onChanged: @escaping ([String]) -> Void) {
+    init(cardName: String, subtitle: String, initialKeywords: [String], onChanged: @escaping ([String]) -> Void) {
         self.state = KeywordsState(initialKeywords)
 
         let win = KeyableWindow(
@@ -40,6 +40,7 @@ class KeywordsEditorWindowController: NSWindowController, NSWindowDelegate {
 
         let view = KeywordsEditorView(
             cardName: cardName,
+            subtitle: subtitle,
             onChanged: { [weak self] kws in
                 onChanged(kws)
                 DispatchQueue.main.async { self?.resize(animated: true) }
@@ -150,6 +151,7 @@ private struct KeywordPill: View {
 
 private struct KeywordsEditorView: View {
     let cardName: String
+    let subtitle: String
     let onChanged: ([String]) -> Void
     let onClose: () -> Void
 
@@ -190,7 +192,7 @@ private struct KeywordsEditorView: View {
                         Text(cardName)
                             .font(.app(22, weight: .bold))
                             .foregroundColor(ink)
-                        Text("Keywords")
+                        Text(subtitle)
                             .font(.app(13))
                             .foregroundColor(mid)
                             .textCase(.uppercase)
