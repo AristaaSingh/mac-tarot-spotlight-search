@@ -27,7 +27,6 @@ struct CardDetailPopupView: View {
 
     private var content: CardContent { ContentStore.shared.content(for: card) }
 
-    // Convenience: pick value based on reversed state
     private func p<T>(_ upright: T, _ reversed: T) -> T { isReversed ? reversed : upright }
 
     var body: some View {
@@ -45,8 +44,27 @@ struct CardDetailPopupView: View {
                 Divider().background(p(Palette.uprightDivider, Palette.reversedDivider))
                 imagePanel
             }
+
+            // Close button
+            VStack {
+                HStack {
+                    Button(action: onClose) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(p(Palette.uprightFaint, Palette.reversedFaint))
+                            .frame(width: 22, height: 22)
+                            .background(p(Palette.uprightAccentBg, Palette.reversedAccentBg))
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .padding(14)
+                    Spacer()
+                }
+                Spacer()
+            }
         }
         .animation(.easeInOut(duration: 0.35), value: isReversed)
+        .onExitCommand { onClose() }
         .scaleEffect(appeared ? 1 : 0.92)
         .opacity(appeared ? 1 : 0)
         .onAppear {
@@ -120,19 +138,6 @@ struct CardDetailPopupView: View {
                 .padding(.top, 12)
             }
 
-            // Close button
-            Button(action: onClose) {
-                ZStack {
-                    Circle()
-                        .fill(p(Palette.uprightFaint, Palette.reversedFaint).opacity(0.4))
-                        .frame(width: 24, height: 24)
-                    Image(systemName: "xmark")
-                        .font(.app(10, weight: .bold))
-                        .foregroundColor(p(Palette.uprightMid, Palette.reversedMid))
-                }
-            }
-            .buttonStyle(.plain)
-            .padding(14)
         }
         .frame(width: CardPopupWindowController.leftPanelW)
     }

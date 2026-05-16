@@ -11,12 +11,29 @@ DerivedData/
 .build/
 xcuserdata/
 *.xcscmblueprint
+*.xcscheme.user
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved
 
 # macOS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Credentials & signing
+*.p12
+*.cer
+*.mobileprovision
+*.provisionprofile
+
+# Environment / secrets
+.env
+.env.*
+secrets.plist
 
 # Generated
 generate_project.rb
-
-# Card images
-TarotApp/Cards/

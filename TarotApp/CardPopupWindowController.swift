@@ -11,54 +11,49 @@ class CardPopupManager {
         popup.show()
     }
 
-    func close(_ controller: CardPopupWindowController) {
-        controller.window?.close()
+    func remove(_ controller: CardPopupWindowController) {
         popups.removeAll { $0 === controller }
     }
 }
 
-class CardPopupWindowController: NSWindowController {
+class CardPopupWindowController: NSWindowController, NSWindowDelegate {
+
+    private var eventMonitor: Any?
 
     // Card image display size (2:3 tarot ratio)
     static let cardDisplayW: CGFloat = 220
     static let cardDisplayH: CGFloat = 330
     static let cardPadding:  CGFloat = 24
 
-    // Right panel is exactly the card + padding on all sides
     static let rightPanelW:  CGFloat = cardDisplayW + cardPadding * 2   // 268
-    // Window height equals card height + padding top/bottom
     static let windowHeight: CGFloat = cardDisplayH + cardPadding * 2   // 378
-    // Left scrollable content panel
     static let leftPanelW:   CGFloat = 460
     static let windowWidth:  CGFloat = leftPanelW + rightPanelW         // 728
 
     init(card: TarotCard) {
-        let panel = NSPanel(
+        let win = NSWindow(
             contentRect: NSRect(x: 0, y: 0,
                                 width:  Self.windowWidth,
                                 height: Self.windowHeight),
-            styleMask: [.borderless, .nonactivatingPanel],
+            styleMask: [.borderless],
             backing: .buffered,
             defer: false
         )
-        panel.isOpaque = false
-        panel.backgroundColor = .clear
-        panel.hasShadow = true
-        panel.level = .floating
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        panel.isMovableByWindowBackground = true
+        win.isOpaque = false
+        win.backgroundColor = .clear
+        win.hasShadow = true
+        win.isMovableByWindowBackground = true
+        win.collectionBehavior = [.canJoinAllSpaces]
 
-        super.init(window: panel)
+        super.init(window: win)
+        win.delegate = self
 
-        let view = CardDetailPopupView(card: card) { [weak self] in
-            guard let self else { return }
-            CardPopupManager.shared.close(self)
-        }
+        let view = CardDetailPopupView(card: card) { [weak win] in win?.close() }
         let hosting = NSHostingView(rootView: view)
         hosting.wantsLayer = true
         hosting.layer?.cornerRadius = 18
         hosting.layer?.masksToBounds = true
-        panel.contentView = hosting
+        win.contentView = hosting
 
         position()
     }
@@ -73,6 +68,19 @@ class CardPopupWindowController: NSWindowController {
             ctx.timingFunction = CAMediaTimingFunction(name: .easeOut)
             window?.animator().alphaValue = 1
         }
+        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            if event.keyCode == 53 { // Escape
+                self?.window?.close()
+                return nil
+            }
+            return event
+        }
+    }
+
+    // Called when window closes (red button or SwiftUI close button)
+    func windowWillClose(_ notification: Notification) {
+        if let m = eventMonitor { NSEvent.removeMonitor(m); eventMonitor = nil }
+        CardPopupManager.shared.remove(self)
     }
 
     private func position() {

@@ -6,9 +6,23 @@ struct SearchOverlayView: View {
     @State private var debounceTimer: Timer?
     @FocusState private var searchFocused: Bool
 
+    private let digitWords: [(String, String)] = [
+        ("10", "ten"), ("2", "two"), ("3", "three"), ("4", "four"), ("5", "five"),
+        ("6", "six"), ("7", "seven"), ("8", "eight"), ("9", "nine")
+    ]
+
+    private func normalize(_ q: String) -> String {
+        for (digit, word) in digitWords {
+            if q == digit || q.hasPrefix(digit + " ") {
+                return word + q.dropFirst(digit.count)
+            }
+        }
+        return q
+    }
+
     var results: [TarotCard] {
         guard !debouncedQuery.isEmpty else { return [] }
-        let q = debouncedQuery.lowercased().trimmingCharacters(in: .whitespaces)
+        let q = normalize(debouncedQuery.lowercased().trimmingCharacters(in: .whitespaces))
         return allCards.filter { card in
             let nameLower = card.name.lowercased()
             let sig = nameLower.hasPrefix("the ") ? String(nameLower.dropFirst(4)) : nameLower
@@ -60,15 +74,23 @@ struct SearchOverlayView: View {
                 .font(.app(16))
                 .foregroundColor(.white)
 
-            TextField("", text: $query, prompt: Text("Search cards…").foregroundColor(.white.opacity(0.85)))
-                .font(.app(18, weight: .light))
-                .foregroundColor(.white)
-                .textFieldStyle(.plain)
-                .focused($searchFocused)
-                .onSubmit {
-                    if let first = results.first { openCard(first) }
+            ZStack(alignment: .leading) {
+                if query.isEmpty {
+                    Text("Search cards…")
+                        .font(.app(18, weight: .light))
+                        .foregroundColor(.white)
+                        .allowsHitTesting(false)
                 }
-                .onKeyPress(.escape) { handleEscape(); return .handled }
+                TextField("", text: $query)
+                    .font(.app(18, weight: .light))
+                    .foregroundColor(.white)
+                    .textFieldStyle(.plain)
+                    .focused($searchFocused)
+                    .onSubmit {
+                        if let first = results.first { openCard(first) }
+                    }
+                    .onKeyPress(.escape) { handleEscape(); return .handled }
+            }
 
             if !query.isEmpty {
                 Button { query = ""; debouncedQuery = "" } label: {
