@@ -19,8 +19,8 @@ class CardPopupManager {
 class CardPopupWindowController: NSWindowController, NSWindowDelegate {
 
     private var eventMonitor: Any?
+    var currentEditor: ContentEditorWindowController?
 
-    // Card image display size (2:3 tarot ratio)
     static let cardDisplayW: CGFloat = 220
     static let cardDisplayH: CGFloat = 330
     static let cardPadding:  CGFloat = 24
@@ -48,7 +48,11 @@ class CardPopupWindowController: NSWindowController, NSWindowDelegate {
         super.init(window: win)
         win.delegate = self
 
-        let view = CardDetailPopupView(card: card) { [weak win] in win?.close() }
+        let view = CardDetailPopupView(
+            card: card,
+            onClose: { [weak self] in self?.window?.close() },
+            onEditorOpened: { [weak self] editor in self?.currentEditor = editor }
+        )
         let hosting = NSHostingView(rootView: view)
         hosting.wantsLayer = true
         hosting.layer?.cornerRadius = 18
@@ -68,17 +72,24 @@ class CardPopupWindowController: NSWindowController, NSWindowDelegate {
             ctx.timingFunction = CAMediaTimingFunction(name: .easeOut)
             window?.animator().alphaValue = 1
         }
+
+        // Single monitor handles all escape logic for this card + its child editor
         eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            if event.keyCode == 53 { // Escape
+            guard event.keyCode == 53 else { return event }
+            if let editor = self?.currentEditor, editor.window?.isVisible == true {
+                editor.saveAndClose()
+                self?.currentEditor = nil
+            } else {
                 self?.window?.close()
-                return nil
             }
-            return event
+            return nil
         }
     }
 
-    // Called when window closes (red button or SwiftUI close button)
     func windowWillClose(_ notification: Notification) {
+        // Save and close any open editor before this window goes away
+        currentEditor?.saveAndClose()
+        currentEditor = nil
         if let m = eventMonitor { NSEvent.removeMonitor(m); eventMonitor = nil }
         CardPopupManager.shared.remove(self)
     }

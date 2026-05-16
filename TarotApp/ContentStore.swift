@@ -38,6 +38,16 @@ class ContentStore {
             .appendingPathComponent("\(card.id).md")
     }
 
+    // MARK: - Save
+
+    func save(_ content: CardContent, for card: TarotCard) {
+        let url = Self.fileURL(for: card)
+        let text = "## Upright\n\(content.upright)\n\n## Reversed\n\(content.reversed)\n\n## My Notes\n\(content.personalNote)\n"
+        try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(),
+                                                  withIntermediateDirectories: true)
+        try? text.write(to: url, atomically: true, encoding: .utf8)
+    }
+
     // MARK: - Markdown parser
 
     private func parse(_ text: String) -> CardContent {

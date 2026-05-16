@@ -21,11 +21,12 @@ private struct Palette {
 struct CardDetailPopupView: View {
     let card: TarotCard
     let onClose: () -> Void
+    let onEditorOpened: (ContentEditorWindowController) -> Void
 
     @State private var isReversed = false
     @State private var appeared   = false
-
-    private var content: CardContent { ContentStore.shared.content(for: card) }
+    @State private var content    = CardContent(upright: "", reversed: "", personalNote: "")
+    @State private var editorWindow: ContentEditorWindowController?
 
     private func p<T>(_ upright: T, _ reversed: T) -> T { isReversed ? reversed : upright }
 
@@ -64,6 +65,7 @@ struct CardDetailPopupView: View {
             }
         }
         .animation(.easeInOut(duration: 0.35), value: isReversed)
+        .onAppear { content = ContentStore.shared.content(for: card) }
         .onExitCommand { onClose() }
         .scaleEffect(appeared ? 1 : 0.92)
         .opacity(appeared ? 1 : 0)
@@ -105,7 +107,8 @@ struct CardDetailPopupView: View {
                     meaningSection(
                         title: isReversed ? "Reversed" : "Upright",
                         icon:  isReversed ? "arrow.counterclockwise" : "sun.max",
-                        text:  isReversed ? content.reversed : content.upright
+                        text:  isReversed ? content.reversed : content.upright,
+                        onEdit: { openEditor(section: isReversed ? "Reversed" : "Upright") }
                     )
 
                     if !content.personalNote.isEmpty {
@@ -181,11 +184,38 @@ struct CardDetailPopupView: View {
 
     // MARK: - Helpers
 
-    private func meaningSection(title: String, icon: String, text: String) -> some View {
+    private func openEditor(section: String) {
+        let initial = section == "Upright" ? content.upright : content.reversed
+        let editor = ContentEditorWindowController(cardName: card.name, section: section, initialText: initial) { saved in
+            var updated = content
+            if section == "Upright" { updated.upright = saved }
+            else                    { updated.reversed = saved }
+            ContentStore.shared.save(updated, for: card)
+            content = updated
+        }
+        editorWindow = editor
+        onEditorOpened(editor)
+        editor.show()
+    }
+
+    private func meaningSection(title: String, icon: String, text: String, onEdit: (() -> Void)? = nil) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            sectionLabel(title, icon: icon)
-            if text.isEmpty {
-                Text("Nothing written yet — open the card's .md file to add your interpretation.")
+            HStack(spacing: 6) {
+                sectionLabel(title, icon: icon)
+                if let onEdit {
+                    Button(action: onEdit) {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundColor(p(Palette.uprightFaint, Palette.reversedFaint))
+                            .frame(width: 18, height: 18)
+                            .background(p(Palette.uprightAccentBg, Palette.reversedAccentBg))
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            if text.isEmpty && onEdit != nil {
+                Text("Nothing written yet — click the pencil to add your interpretation.")
                     .font(.appItalic(13))
                     .foregroundColor(p(Palette.uprightFaint, Palette.reversedFaint))
                     .lineSpacing(4)
