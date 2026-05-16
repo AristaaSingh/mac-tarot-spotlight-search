@@ -86,6 +86,17 @@ class CardPopupWindowController: NSWindowController, NSWindowDelegate {
         }
     }
 
+    func fadeAndClose() {
+        guard let win = window else { return }
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = 0.18
+            ctx.timingFunction = CAMediaTimingFunction(name: .easeIn)
+            win.animator().alphaValue = 0
+        } completionHandler: {
+            win.close()
+        }
+    }
+
     func windowWillClose(_ notification: Notification) {
         // Save and close any open editor before this window goes away
         currentEditor?.saveAndClose()

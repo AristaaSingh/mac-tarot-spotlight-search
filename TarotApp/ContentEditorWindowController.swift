@@ -3,8 +3,94 @@ import SwiftUI
 
 class EditorState: ObservableObject {
     @Published var text: String
+    @Published var isClosing = false
     init(_ text: String) { self.text = text }
 }
+
+// Borderless window that can become key so the text view accepts input
+private class KeyableWindow: NSWindow {
+    override var canBecomeKey: Bool { true }
+}
+
+private class StyledTextView: NSTextView {
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        window?.makeFirstResponder(self)
+    }
+
+    override func drawInsertionPoint(in rect: NSRect, color: NSColor, turnedOn flag: Bool) {
+        guard flag else { return }
+        color.setFill()
+        NSRect(x: rect.minX, y: rect.minY, width: 1, height: rect.height).fill()
+    }
+
+    override func setNeedsDisplay(_ rect: NSRect, avoidAdditionalLayout flag: Bool) {
+        super.setNeedsDisplay(rect, avoidAdditionalLayout: flag)
+    }
+}
+
+// MARK: - NSViewRepresentable wrapping StyledTextView
+
+struct StyledTextEditor: NSViewRepresentable {
+    @Binding var text: String
+    var nsFont: NSFont
+    var textColor: NSColor
+    var lineHeightMultiple: CGFloat
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    func makeNSView(context: Context) -> NSScrollView {
+        // Explicit TextKit 1 stack so drawInsertionPoint override is actually called
+        let textStorage   = NSTextStorage()
+        let layoutMgr     = NSLayoutManager()
+        let textContainer = NSTextContainer(size: NSSize(width: 0, height: CGFloat.greatestFiniteMagnitude))
+        textContainer.widthTracksTextView = true
+        layoutMgr.addTextContainer(textContainer)
+        textStorage.addLayoutManager(layoutMgr)
+        let textView = StyledTextView(frame: NSRect.zero, textContainer: textContainer)
+        textView.isEditable = true
+        textView.isRichText = false
+        textView.isAutomaticQuoteSubstitutionEnabled = false
+        textView.allowsUndo = true
+        textView.drawsBackground = false
+        textView.textContainerInset = .zero
+        textView.textContainer?.lineFragmentPadding = 0
+        textView.delegate = context.coordinator
+
+        let style = NSMutableParagraphStyle()
+        style.lineSpacing = lineHeightMultiple
+        textView.typingAttributes = [
+            .font: nsFont,
+            .foregroundColor: textColor,
+            .paragraphStyle: style
+        ]
+        textView.string = text
+
+        let scroll = NSScrollView()
+        scroll.drawsBackground = false
+        scroll.hasVerticalScroller = true
+        scroll.autohidesScrollers = true
+        scroll.documentView = textView
+        textView.autoresizingMask = [.width]
+        return scroll
+    }
+
+    func updateNSView(_ scrollView: NSScrollView, context: Context) {
+        guard let textView = scrollView.documentView as? StyledTextView else { return }
+        if textView.string != text { textView.string = text }
+    }
+
+    class Coordinator: NSObject, NSTextViewDelegate {
+        var parent: StyledTextEditor
+        init(_ parent: StyledTextEditor) { self.parent = parent }
+        func textDidChange(_ notification: Notification) {
+            guard let tv = notification.object as? NSTextView else { return }
+            parent.text = tv.string
+        }
+    }
+}
+
+// MARK: - Window controller
 
 class ContentEditorWindowController: NSWindowController {
 
@@ -18,7 +104,7 @@ class ContentEditorWindowController: NSWindowController {
         self.state  = EditorState(initialText)
         self.onSave = onSave
 
-        let win = NSWindow(
+        let win = KeyableWindow(
             contentRect: NSRect(x: 0, y: 0, width: Self.windowW, height: Self.windowH),
             styleMask: [.borderless],
             backing: .buffered,
@@ -33,12 +119,14 @@ class ContentEditorWindowController: NSWindowController {
 
         super.init(window: win)
 
-        let view = ContentEditorView(cardName: cardName, section: section,
-                                     onCancel: { [weak win] in win?.close() }, state: state)
+        let view = ContentEditorView(
+            cardName: cardName,
+            section: section,
+            onSave: { [weak self] in self?.saveAndClose() },
+            onCancel: { [weak self] in self?.animateClose() },
+            state: state
+        )
         let hosting = NSHostingView(rootView: view)
-        hosting.wantsLayer = true
-        hosting.layer?.cornerRadius = 16
-        hosting.layer?.masksToBounds = true
         win.contentView = hosting
 
         if let screen = NSScreen.main {
@@ -50,15 +138,22 @@ class ContentEditorWindowController: NSWindowController {
 
     required init?(coder: NSCoder) { fatalError() }
 
-    /// Save current text and close. Called by the card window on escape or when it closes.
     func saveAndClose() {
         onSave(state.text)
-        window?.close()
+        animateClose()
+    }
+
+    private func animateClose() {
+        state.isClosing = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.38) { [weak self] in
+            self?.window?.close()
+        }
     }
 
     func show() {
         window?.alphaValue = 0
         window?.orderFrontRegardless()
+        window?.makeKey()
         NSAnimationContext.runAnimationGroup { ctx in
             ctx.duration = 0.2
             ctx.timingFunction = CAMediaTimingFunction(name: .easeOut)
@@ -67,24 +162,54 @@ class ContentEditorWindowController: NSWindowController {
     }
 }
 
+// MARK: - Save button style
+
+private struct SaveButtonStyle: ButtonStyle {
+    @State private var isHovered = false
+    private let base    = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.08)
+    private let hovered = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.14)
+    private let pressed = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.24)
+    private let ink     = Color(red: 0.278, green: 0, blue: 0.102)
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.app(13, weight: .bold))
+            .foregroundColor(ink)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 6)
+            .background(configuration.isPressed ? pressed : (isHovered ? hovered : base))
+            .clipShape(Capsule())
+            .animation(.easeOut(duration: 0.12), value: isHovered)
+            .animation(.easeOut(duration: 0.08), value: configuration.isPressed)
+            .onHover { isHovered = $0 }
+    }
+}
+
+// MARK: - SwiftUI view
+
 private struct ContentEditorView: View {
     let cardName: String
     let section: String
+    let onSave: () -> Void
     let onCancel: () -> Void
 
     @ObservedObject var state: EditorState
-    @FocusState private var editorFocused: Bool
+    @State private var appeared = false
 
-    private let ink   = Color(red: 0.278, green: 0, blue: 0.102)
-    private let mid   = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.50)
-    private let faint = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.30)
-    private let bg    = Color(red: 0.98, green: 0.96, blue: 0.94)
+    private let ink      = Color(red: 0.278, green: 0, blue: 0.102)
+    private let mid      = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.50)
+    private let faint    = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.30)
+    private let bg       = Color(red: 0.98, green: 0.96, blue: 0.94)
+    private let accentBg = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.08)
+
+    private let nsInk = NSColor(red: 0.278, green: 0, blue: 0.102, alpha: 1)
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            bg.ignoresSafeArea()
+            bg
 
             VStack(alignment: .leading, spacing: 0) {
+
                 // Header
                 VStack(alignment: .leading, spacing: 0) {
                     Button(action: onCancel) {
@@ -92,7 +217,7 @@ private struct ContentEditorView: View {
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(faint)
                             .frame(width: 20, height: 20)
-                            .background(Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.06))
+                            .background(accentBg)
                             .clipShape(Circle())
                     }
                     .buttonStyle(.plain)
@@ -112,23 +237,38 @@ private struct ContentEditorView: View {
                     .padding(.bottom, 20)
                 }
 
-                // Editor — Save button lives in card window controller (escape / X close)
-                TextEditor(text: $state.text)
-                    .font(.app(15))
-                    .foregroundColor(ink)
-                    .lineSpacing(5)
-                    .scrollContentBackground(.hidden)
-                    .background(Color.clear)
-                    .focused($editorFocused)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 16)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // Editor
+                StyledTextEditor(
+                    text: $state.text,
+                    nsFont: NSFont(name: "Didot", size: 15) ?? .systemFont(ofSize: 15),
+                    textColor: nsInk,
+                    lineHeightMultiple: 1.4
+                )
+                .padding(.horizontal, 28)
+                .padding(.vertical, 16)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                // Footer
+                HStack {
+                    Spacer()
+                    Button("Save", action: onSave)
+                        .buttonStyle(SaveButtonStyle())
+                }
+                .padding(.horizontal, 28)
+                .padding(.vertical, 16)
             }
         }
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .opacity(appeared ? 1 : 0)
         .frame(width: ContentEditorWindowController.windowW,
                height: ContentEditorWindowController.windowH)
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { editorFocused = true }
+            withAnimation(.easeOut(duration: 0.2)) { appeared = true }
+        }
+        .onChange(of: state.isClosing) {
+            if state.isClosing {
+                withAnimation(.easeIn(duration: 0.18)) { appeared = false }
+            }
         }
     }
 }

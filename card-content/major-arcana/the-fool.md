@@ -1,8 +1,9 @@
 ## Upright
-hello hellooo
+ts finally works
+
 
 ## Reversed
-bye byeeee
+bye byeeeeee
 
 ## My Notes
 
