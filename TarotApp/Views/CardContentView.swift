@@ -187,24 +187,25 @@ struct CardDetailPopupView: View {
         let ch = CardPopupWindowController.cardDisplayH
 
         return ZStack {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(p(Palette.uprightAccentBg, Palette.reversedAccentBg))
-
+            Group {
                 if let img = card.image {
                     Image(nsImage: img)
                         .resizable()
                         .scaledToFit()
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 } else {
-                    VStack(spacing: 8) {
-                        Text(card.suitSymbol).font(.app(44))
-                        Text(card.name)
-                            .font(.app(11, weight: .bold))
-                            .foregroundColor(p(Palette.uprightMid, Palette.reversedMid))
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 12)
-                    }
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(p(Palette.uprightAccentBg, Palette.reversedAccentBg))
+                        .overlay(
+                            VStack(spacing: 8) {
+                                Text(card.suitSymbol).font(.app(44))
+                                Text(card.name)
+                                    .font(.app(11, weight: .bold))
+                                    .foregroundColor(p(Palette.uprightMid, Palette.reversedMid))
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 12)
+                            }
+                        )
                 }
             }
             .frame(width: cw, height: ch)
