@@ -25,6 +25,7 @@
 		95301734F9525C12124C2CEB /* ThumbnailWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3221B4DD44C2281BC645E73F /* ThumbnailWindowManager.swift */; };
 		A32A77B023E567ECF8B3D94C /* Font+App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC22BA2E50261EEFBD07A5A /* Font+App.swift */; };
 		A3BA099F652D81C94DE85D7B /* OverlayWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C06B60F82CCF46E5C95C3AD /* OverlayWindowController.swift */; };
+		C97C28DFA88BD03DE0078EDD /* keyword-window-bg.gif in Resources */ = {isa = PBXBuildFile; fileRef = BBE10CC6F626AB0782DB7E03 /* keyword-window-bg.gif */; };
 		CAFB75F5FBFF4C9BD20BF8A3 /* AnimatedGIFView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90010721339F24A2D616A50 /* AnimatedGIFView.swift */; };
 		D51A45F193E70FABB08F060F /* CardData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D47B5E58D0C47D0C749D63 /* CardData.swift */; };
 		D9811D6B05C0695BB24E925A /* CardPopupWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D6D73C4613D9F3B82EE8935 /* CardPopupWindowController.swift */; };
@@ -54,6 +55,7 @@
 		A90010721339F24A2D616A50 /* AnimatedGIFView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnimatedGIFView.swift; sourceTree = "<group>"; };
 		B2616B2C427566061D1D8346 /* SearchOverlayView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchOverlayView.swift; sourceTree = "<group>"; };
 		B95833A7D362CC6138BCBAC7 /* FlowLayout.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
+		BBE10CC6F626AB0782DB7E03 /* keyword-window-bg.gif */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.gif; path = "keyword-window-bg.gif"; sourceTree = "<group>"; };
 		CFC4BFDEF69FD279DC638105 /* CardThumbnailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardThumbnailView.swift; sourceTree = "<group>"; };
 		D0B6A19C76503213452F5DFC /* KeywordsEditorWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeywordsEditorWindowController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -153,6 +155,7 @@
 			isa = PBXGroup;
 			children = (
 				8649834877860963BEEFA942 /* dreamy-banner.gif */,
+				BBE10CC6F626AB0782DB7E03 /* keyword-window-bg.gif */,
 			);
 			name = Resources;
 			path = Resources;
@@ -214,6 +217,7 @@
 				23F294F186D091D999A3CFCC /* Assets.xcassets in Resources */,
 				57118D9F83B701D47C04327A /* Cards in Resources */,
 				495E5DDA839B7AAD291CD81E /* dreamy-banner.gif in Resources */,
+				C97C28DFA88BD03DE0078EDD /* keyword-window-bg.gif in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

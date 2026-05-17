@@ -22,9 +22,7 @@ struct TarotCard: Identifiable, Codable {
     let suit: Suit
     let element: String
     let keywords: [String]
-    var upright: String
-    var reversed: String
-    var personalNote: String
+    var url: String?
 
     // Loads from the Cards/ bundle folder, trying jpg then png
     var image: NSImage? {

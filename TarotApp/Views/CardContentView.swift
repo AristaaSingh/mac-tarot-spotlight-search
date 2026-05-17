@@ -22,16 +22,43 @@ private struct Palette {
     static let reversedOverlay  = Color.black.opacity(0.25)
 }
 
-private struct PencilButtonStyle: ButtonStyle {
+private struct PushButtonStyle: ButtonStyle {
+    let face:  Color
+    let hover: Color
+    let edge:  Color
+    let ink:   Color
+    @State private var isHovered = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        let pressed = configuration.isPressed
+        configuration.label
+            .font(.app(16, weight: .semibold))
+            .foregroundColor(ink)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(isHovered ? hover : face)
+                    .shadow(color: edge, radius: 0, x: 0, y: pressed ? 0 : 3)
+            )
+            .offset(y: pressed ? 3 : 0)
+            .animation(.easeOut(duration: 0.12), value: isHovered)
+            .animation(.spring(response: 0.12, dampingFraction: 0.7), value: pressed)
+            .onHover { isHovered = $0 }
+    }
+}
+
+private struct CardButtonStyle: ButtonStyle {
     let base:    Color
     let hovered: Color
     let pressed: Color
+    var shape: AnyShape = AnyShape(Capsule())
     @State private var isHovered = false
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .background(configuration.isPressed ? pressed : (isHovered ? hovered : base))
-            .clipShape(Circle())
+            .clipShape(shape)
             .animation(.easeOut(duration: 0.1), value: isHovered)
             .animation(.easeOut(duration: 0.06), value: configuration.isPressed)
             .onHover { isHovered = $0 }
@@ -105,20 +132,34 @@ struct CardDetailPopupView: View {
                 VStack(alignment: .leading, spacing: 20) {
 
                     // Header
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack(alignment: .firstTextBaseline, spacing: 8) {
-                            Text(card.name)
-                                .font(.app(24, weight: .bold))
-                                .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
-                            Text(card.displayNumber)
-                                .font(.app(14))
-                                .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
+                    HStack(alignment: .center, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                Text(card.name)
+                                    .font(.app(24, weight: .bold))
+                                    .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
+                                Text(card.displayNumber)
+                                    .font(.app(14))
+                                    .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
+                            }
+                            HStack(spacing: 6) {
+                                pill(card.arcana.rawValue)
+                                if card.suit != .none { pill(card.suit.rawValue) }
+                                pill(card.element)
+                                if isReversed { pill("Reversed", highlighted: true) }
+                            }
                         }
-                        HStack(spacing: 6) {
-                            pill(card.arcana.rawValue)
-                            if card.suit != .none { pill(card.suit.rawValue) }
-                            pill(card.element)
-                            if isReversed { pill("Reversed", highlighted: true) }
+                        Spacer()
+                        if let urlString = card.url, let url = URL(string: urlString) {
+                            Button { NSWorkspace.shared.open(url) } label: {
+                                Text("Labyrinthos")
+                            }
+                            .buttonStyle(PushButtonStyle(
+                                face:  p(Color(red: 0.651, green: 0.486, blue: 0.541), Color(red: 0.474, green: 0.403, blue: 0.576)),
+                                hover: p(Color(red: 0.561, green: 0.325, blue: 0.396), Color(red: 0.396, green: 0.325, blue: 0.482)),
+                                edge:  p(Color(red: 0.741, green: 0.620, blue: 0.659), Color(red: 0.741, green: 0.737, blue: 0.804)),
+                                ink:   .white
+                            ))
                         }
                     }
 
@@ -132,10 +173,11 @@ struct CardDetailPopupView: View {
                                     .foregroundColor(p(Palette.uprightFaint, Palette.reversedFaint))
                                     .frame(width: 18, height: 18)
                             }
-                            .buttonStyle(PencilButtonStyle(
+                            .buttonStyle(CardButtonStyle(
                                 base:    p(Palette.uprightAccentBg,  Palette.reversedAccentBg),
                                 hovered: p(Palette.uprightBtnHover,  Palette.reversedBtnHover),
-                                pressed: p(Palette.uprightBtnPress,  Palette.reversedBtnPress)
+                                pressed: p(Palette.uprightBtnPress,  Palette.reversedBtnPress),
+                                shape:   AnyShape(Circle())
                             ))
                         }
                         let effectiveKeywords = isReversed
@@ -261,10 +303,11 @@ struct CardDetailPopupView: View {
                             .foregroundColor(p(Palette.uprightFaint, Palette.reversedFaint))
                             .frame(width: 18, height: 18)
                     }
-                    .buttonStyle(PencilButtonStyle(
+                    .buttonStyle(CardButtonStyle(
                         base:    p(Palette.uprightAccentBg, Palette.reversedAccentBg),
                         hovered: p(Palette.uprightBtnHover, Palette.reversedBtnHover),
-                        pressed: p(Palette.uprightBtnPress, Palette.reversedBtnPress)
+                        pressed: p(Palette.uprightBtnPress, Palette.reversedBtnPress),
+                        shape:   AnyShape(Circle())
                     ))
                 }
             }

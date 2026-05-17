@@ -49,6 +49,9 @@ class KeywordsEditorWindowController: NSWindowController, NSWindowDelegate {
             state: state
         )
         let h = NSHostingView(rootView: view)
+        h.wantsLayer = true
+        h.layer?.cornerRadius = 24
+        h.layer?.masksToBounds = true
         hosting = h
         win.contentView = h
     }
@@ -170,10 +173,7 @@ private struct KeywordsEditorView: View {
     private let fieldBg  = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.05)
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            bg
-
-            VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 0) {
 
                 // Header
                 VStack(alignment: .leading, spacing: 0) {
@@ -244,8 +244,11 @@ private struct KeywordsEditorView: View {
                     .padding(.top, 16)
                     .padding(.bottom, 20)
                 }
-            }
         }
+        .background(
+            AnimatedGIFView(filename: "keyword-window-bg")
+                .blur(radius: 4, opaque: true)
+        )
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .opacity(appeared ? 1 : 0)
         .frame(width: KeywordsEditorWindowController.windowW)
