@@ -13,8 +13,8 @@ class ContentStore {
     private init() {}
 
     private static let base: URL = {
-        FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Desktop/Programming/tarot-app/card-content")
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            .appendingPathComponent("TarotApp")
     }()
 
     // MARK: - Public

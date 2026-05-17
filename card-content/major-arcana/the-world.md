@@ -1,8 +1,0 @@
-## Upright
-
-
-## Reversed
-
-
-## My Notes
-
