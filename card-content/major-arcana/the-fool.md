@@ -1,6 +1,3 @@
-## URL
-https://labyrinthos.co/blogs/tarot-card-meanings-list/the-fool-meaning-major-arcana-tarot-card-meanings
-
 ## Upright
 i can write whtever i want
 

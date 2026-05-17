@@ -229,6 +229,7 @@ private struct KeywordsEditorView: View {
                     .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 28)
+                .padding(.bottom, state.keywords.isEmpty ? 24 : 0)
 
                 // Keywords pills
                 if !state.keywords.isEmpty {

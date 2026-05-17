@@ -21,7 +21,6 @@ struct TarotCard: Identifiable, Codable {
     let arcana: Arcana
     let suit: Suit
     let element: String
-    let keywords: [String]
     var url: String?
 
     // Loads from the Cards/ bundle folder, trying jpg then png

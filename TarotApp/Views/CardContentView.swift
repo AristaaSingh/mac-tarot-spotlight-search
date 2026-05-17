@@ -181,8 +181,8 @@ struct CardDetailPopupView: View {
                             ))
                         }
                         let effectiveKeywords = isReversed
-                            ? (content.reversedKeywords ?? card.keywords)
-                            : (content.uprightKeywords  ?? card.keywords)
+                            ? (content.reversedKeywords ?? [])
+                            : (content.uprightKeywords  ?? [])
                         FlowLayout(spacing: 6) {
                             ForEach(effectiveKeywords, id: \.self) { kw in
                                 Text(kw)
@@ -264,8 +264,8 @@ struct CardDetailPopupView: View {
 
     private func openKeywordsEditor() {
         let initial = isReversed
-            ? (content.reversedKeywords ?? card.keywords)
-            : (content.uprightKeywords  ?? card.keywords)
+            ? (content.reversedKeywords ?? [])
+            : (content.uprightKeywords  ?? [])
         let subtitle = isReversed ? "Keywords · Reversed" : "Keywords · Upright"
         let editor = KeywordsEditorWindowController(cardName: card.name, subtitle: subtitle, initialKeywords: initial) { updated in
             var c = content
