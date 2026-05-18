@@ -172,25 +172,54 @@ struct ReadingEditorView: View {
             }
             .background(bg)
 
-            // ── Card picker overlay ──────────────────────────────────────
-            if let id = pickingForID {
-                Color.black.opacity(0.10).ignoresSafeArea()
+            // ── Card picker search pill ──────────────────────────────────
+            if pickingForID != nil {
                 CardPickerView(
                     query: $cardPickerQuery,
-                    results: pickerResults,
-                    onSelect: { card in
-                        if let idx = draft.cardEntries.firstIndex(where: { $0.id == id }) {
-                            draft.cardEntries[idx].cardID = card.id
-                        }
-                        pickingForID = nil
-                        cardPickerQuery = ""
+                    onSubmit: {
+                        if let first = pickerResults.first { applySelection(first) }
                     },
-                    onDismiss: { pickingForID = nil; cardPickerQuery = "" }
+                    onDismiss: { dismissPicker() }
                 )
                 .transition(.opacity.combined(with: .scale(scale: 0.97)))
             }
         }
         .animation(.easeOut(duration: 0.15), value: pickingForID != nil)
+        // Drive thumbnail panels whenever the query changes
+        .onChange(of: cardPickerQuery) { _ in
+            guard pickingForID != nil else { return }
+            let results = pickerResults
+            if results.isEmpty {
+                CardPickerThumbnailManager.shared.clear()
+            } else {
+                let frame = NSApp.keyWindow?.frame ?? .zero
+                CardPickerThumbnailManager.shared.show(
+                    cards: results,
+                    relativeTo: frame,
+                    onSelect: { card in applySelection(card) }
+                )
+            }
+        }
+        // Clear thumbnails when picker closes
+        .onChange(of: pickingForID) { id in
+            if id == nil { CardPickerThumbnailManager.shared.clear() }
+        }
+    }
+
+    private func applySelection(_ card: TarotCard) {
+        guard let id = pickingForID else { return }
+        if let idx = draft.cardEntries.firstIndex(where: { $0.id == id }) {
+            draft.cardEntries[idx].cardID = card.id
+        }
+        pickingForID    = nil
+        cardPickerQuery = ""
+        CardPickerThumbnailManager.shared.clear()
+    }
+
+    private func dismissPicker() {
+        pickingForID    = nil
+        cardPickerQuery = ""
+        CardPickerThumbnailManager.shared.clear()
     }
 }
 
@@ -295,97 +324,49 @@ struct CardEntryRow: View {
 }
 
 // MARK: - Card Picker
+// Just the search pill — results appear as floating thumbnail panels via CardPickerThumbnailManager.
 
 struct CardPickerView: View {
     @Binding var query: String
-    let results:   [TarotCard]
-    let onSelect:  (TarotCard) -> Void
+    let onSubmit:  () -> Void
     let onDismiss: () -> Void
 
-    private let bg     = Color(red: 0.98, green: 0.96, blue: 0.94)
-    private let ink    = Color(red: 0.278, green: 0, blue: 0.102)
-    private let faint  = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.38)
-    private let subtle = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.07)
-    private let nsInk  = NSColor(red: 0.278, green: 0, blue: 0.102, alpha: 1)
+    private let bg    = Color(red: 0.98, green: 0.96, blue: 0.94)
+    private let faint = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.40)
+    private let nsInk = NSColor(red: 0.278, green: 0, blue: 0.102, alpha: 1)
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 8) {
-                ThemedTextField(
-                    text: $query,
-                    placeholder: "Search cards…",
-                    nsFont: NSFont(name: "Didot", size: 14) ?? .systemFont(ofSize: 14),
-                    textColor: nsInk,
-                    cursorColor: nsInk,
-                    onEscape: { onDismiss() }
-                )
-                .padding(.horizontal, 10)
-                .padding(.vertical, 8)
-                .background(subtle)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+        HStack(spacing: 10) {
+            Image(systemName: "moon.stars.fill")
+                .font(.app(15))
+                .foregroundColor(faint)
 
-                Button(action: onDismiss) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(faint)
-                        .frame(width: 28, height: 28)
-                        .background(subtle)
-                        .clipShape(Circle())
+            ThemedTextField(
+                text: $query,
+                placeholder: "Search cards…",
+                nsFont: NSFont(name: "Didot", size: 16) ?? .systemFont(ofSize: 16),
+                textColor: nsInk,
+                cursorColor: nsInk,
+                isFocused: true,
+                onSubmit: onSubmit,
+                onEscape: onDismiss
+            )
+
+            if !query.isEmpty {
+                Button { query = "" } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(faint.opacity(0.7))
                 }
                 .buttonStyle(.plain)
             }
-            .padding(16)
-
-            Divider().background(Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.1))
-
-            if query.isEmpty {
-                Text("Type a card name…")
-                    .font(.appItalic(13))
-                    .foregroundColor(faint)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding()
-            } else if results.isEmpty {
-                Text("No cards found")
-                    .font(.app(13))
-                    .foregroundColor(faint)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding()
-            } else {
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: 0) {
-                        ForEach(results) { card in
-                            Button { onSelect(card) } label: {
-                                HStack(spacing: 10) {
-                                    if let img = card.image {
-                                        Image(nsImage: img)
-                                            .resizable().scaledToFit()
-                                            .frame(width: 28, height: 42)
-                                            .clipShape(RoundedRectangle(cornerRadius: 4))
-                                    } else {
-                                        Text(card.suitSymbol).frame(width: 28, height: 42)
-                                    }
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(card.name).font(.app(13)).foregroundColor(ink)
-                                        Text(card.suit == .none ? card.arcana.rawValue : card.suit.rawValue)
-                                            .font(.app(10)).foregroundColor(faint)
-                                    }
-                                    Spacer()
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                            }
-                            .buttonStyle(.plain)
-                            Divider().background(Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.06))
-                        }
-                    }
-                }
-            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 14)
+        .frame(width: 360)
         .background(bg)
         .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.14), radius: 18)
-        .padding(20)
+        .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 6)
     }
 }
 
