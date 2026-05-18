@@ -12,6 +12,24 @@ struct JournalView: View {
     private let dividerColor = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.10)
     private let nsInk        = NSColor(red: 0.278, green: 0, blue: 0.102, alpha: 1)
 
+    private let columns = [GridItem(.adaptive(minimum: 140, maximum: 180), spacing: 12)]
+
+    private static let monthFmt: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "MMMM yyyy"; return f
+    }()
+
+    /// Entries grouped by "Month YYYY", preserving chronological-descending order.
+    var groupedEntries: [(month: String, entries: [ReadingEntry])] {
+        var seen: [String: [ReadingEntry]] = [:]
+        var order: [String] = []
+        for entry in filtered {
+            let key = Self.monthFmt.string(from: entry.date)
+            if seen[key] == nil { order.append(key); seen[key] = [] }
+            seen[key]!.append(entry)
+        }
+        return order.map { (month: $0, entries: seen[$0]!) }
+    }
+
     var filtered: [ReadingEntry] {
         guard !query.isEmpty else { return store.entries }
         let q = query.lowercased()
@@ -30,7 +48,7 @@ struct JournalView: View {
             VStack(spacing: 0) {
                 header
                 dividerColor.frame(height: 1)
-                entryList
+                entryGrid
                 dividerColor.frame(height: 1)
                 newReadingButton
             }
@@ -56,12 +74,12 @@ struct JournalView: View {
         .onExitCommand { close() }
     }
 
-    // MARK: Header (search + label)
+    // MARK: Header
 
     private var header: some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 13, weight: .regular))
+                .font(.system(size: 13))
                 .foregroundColor(faint)
 
             ThemedTextField(
@@ -72,15 +90,24 @@ struct JournalView: View {
                 cursorColor: nsInk,
                 onEscape: { close() }
             )
+
+            if !query.isEmpty {
+                Button { query = "" } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 13))
+                        .foregroundColor(faint.opacity(0.6))
+                }
+                .buttonStyle(.plain)
+            }
         }
         .padding(.horizontal, 20)
-        .padding(.top, 50)   // clear close button
+        .padding(.top, 50)
         .padding(.bottom, 14)
     }
 
-    // MARK: Entry list
+    // MARK: Entry grid
 
-    private var entryList: some View {
+    private var entryGrid: some View {
         Group {
             if filtered.isEmpty {
                 VStack(spacing: 10) {
@@ -94,16 +121,27 @@ struct JournalView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView(.vertical, showsIndicators: false) {
-                    LazyVStack(spacing: 0) {
-                        ForEach(filtered) { entry in
-                            JournalEntryRow(entry: entry)
-                                .onTapGesture {
-                                    ReadingWindowManager.shared.open(entry: entry)
+                    LazyVGrid(columns: columns, spacing: 12) {
+                        ForEach(groupedEntries, id: \.month) { group in
+                            Section {
+                                ForEach(group.entries) { entry in
+                                    ReadingThumbnail(entry: entry)
+                                        .onTapGesture {
+                                            ReadingWindowManager.shared.open(entry: entry)
+                                        }
                                 }
-                            dividerColor.frame(height: 1)
+                            } header: {
+                                Text(group.month.uppercased())
+                                    .font(.app(10, weight: .semibold))
+                                    .foregroundColor(faint)
+                                    .kerning(1.4)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.top, 6)
+                                    .padding(.bottom, 2)
+                            }
                         }
                     }
-                    .padding(.vertical, 4)
+                    .padding(16)
                 }
             }
         }
@@ -113,9 +151,7 @@ struct JournalView: View {
     // MARK: New reading button
 
     private var newReadingButton: some View {
-        Button {
-            ReadingWindowManager.shared.openNew()
-        } label: {
+        Button { ReadingWindowManager.shared.openNew() } label: {
             HStack(spacing: 6) {
                 Image(systemName: "plus")
                     .font(.system(size: 11, weight: .semibold))
@@ -132,11 +168,15 @@ struct JournalView: View {
     private func close() { OverlayWindowController.shared.hide() }
 }
 
-// MARK: - Entry Row
+// MARK: - Reading Thumbnail
 
-private struct JournalEntryRow: View {
+private struct ReadingThumbnail: View {
     let entry: ReadingEntry
     @State private var isHovered = false
+
+    private let ink    = Color(red: 0.278, green: 0, blue: 0.102)
+    private let faint  = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.38)
+    private let subtle = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.07)
 
     private static let dateFmt: DateFormatter = {
         let f = DateFormatter()
@@ -144,89 +184,94 @@ private struct JournalEntryRow: View {
         return f
     }()
 
-    private let ink   = Color(red: 0.278, green: 0, blue: 0.102)
-    private let faint = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.40)
-
-    var cardSummary: String {
-        let cards = entry.allCardIDs.compactMap { id in allCards.first { $0.id == id } }
-        if cards.isEmpty { return "" }
-        if cards.count <= 3 { return cards.map { $0.name }.joined(separator: "  ·  ") }
-        return "\(cards.count) cards"
+    var cards: [TarotCard] {
+        entry.allCardIDs.prefix(3).compactMap { id in allCards.first { $0.id == id } }
     }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 16) {
-            // Card thumbnails (up to 3)
-            cardThumbnails
+        VStack(spacing: 0) {
 
-            // Text content
-            VStack(alignment: .leading, spacing: 4) {
-                Text(entry.title.isEmpty ? "Untitled reading" : entry.title)
-                    .font(.app(14))
-                    .foregroundColor(entry.title.isEmpty ? faint : ink)
-                    .lineLimit(1)
+            // ── Card image area ──────────────────────────────────────────
+            ZStack {
+                Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.05)
 
-                if !entry.body.isEmpty {
-                    Text(entry.body)
-                        .font(.app(12))
-                        .foregroundColor(faint)
-                        .lineLimit(1)
-                }
-
-                if !cardSummary.isEmpty {
-                    Text(cardSummary)
-                        .font(.app(11))
-                        .foregroundColor(faint.opacity(0.7))
-                        .lineLimit(1)
+                if cards.isEmpty {
+                    Image(systemName: "book.closed")
+                        .font(.system(size: 22))
+                        .foregroundColor(faint.opacity(0.5))
+                } else {
+                    // Fan of cards
+                    let angles: [Double] = [-10, 0, 10]
+                    let offsets: [CGFloat] = [-14, 0, 14]
+                    ZStack {
+                        ForEach(Array(cards.enumerated()), id: \.offset) { i, card in
+                            let angle  = i < angles.count  ? angles[i]  : 0
+                            let offset = i < offsets.count ? offsets[i] : 0
+                            CardFace(card: card)
+                                .frame(width: 62, height: 93)
+                                .rotationEffect(.degrees(angle))
+                                .offset(x: offset * 0.6, y: abs(offset) * 0.05)
+                                .zIndex(i == 1 ? 2 : 1) // middle card on top
+                        }
+                    }
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(height: 128)
+            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 14, topTrailingRadius: 14))
 
-            // Date
-            Text(Self.dateFmt.string(from: entry.date))
-                .font(.app(11))
-                .foregroundColor(faint.opacity(0.7))
+            // ── Text area ────────────────────────────────────────────────
+            VStack(alignment: .leading, spacing: 3) {
+                Text(entry.title.isEmpty ? "Untitled" : entry.title)
+                    .font(.app(12, weight: .semibold))
+                    .foregroundColor(entry.title.isEmpty ? faint : ink)
+                    .lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                Text(Self.dateFmt.string(from: entry.date))
+                    .font(.app(10))
+                    .foregroundColor(faint)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 9)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(red: 0.98, green: 0.96, blue: 0.94))
+            .clipShape(UnevenRoundedRectangle(bottomLeadingRadius: 14, bottomTrailingRadius: 14))
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
         .background(
-            isHovered
-                ? Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.05)
-                : Color.clear
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color(red: 0.98, green: 0.96, blue: 0.94))
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color(red: 0.278, green: 0, blue: 0.102, opacity: isHovered ? 0.18 : 0.07), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(isHovered ? 0.12 : 0.04), radius: isHovered ? 10 : 4, y: 2)
+        .scaleEffect(isHovered ? 1.025 : 1)
+        .animation(.easeOut(duration: 0.15), value: isHovered)
         .onHover { isHovered = $0 }
         .contentShape(Rectangle())
     }
+}
 
-    @ViewBuilder
-    private var cardThumbnails: some View {
-        let cards = entry.allCardIDs.prefix(2).compactMap { id in allCards.first { $0.id == id } }
-        if cards.isEmpty {
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.06))
-                .frame(width: 30, height: 44)
-        } else {
-            ZStack(alignment: .leading) {
-                ForEach(Array(cards.enumerated()), id: \.offset) { i, card in
-                    Group {
-                        if let img = card.image {
-                            Image(nsImage: img)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 30, height: 44)
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
-                        } else {
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.08))
-                                .frame(width: 30, height: 44)
-                                .overlay(Text(card.suitSymbol).font(.app(12)))
-                        }
-                    }
-                    .offset(x: CGFloat(i) * 18)
-                    .zIndex(Double(cards.count - i))
-                }
+// Single card face used in the fan
+private struct CardFace: View {
+    let card: TarotCard
+    private let subtle = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.08)
+    private let faint  = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.35)
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 7).fill(subtle)
+            if let img = card.image {
+                Image(nsImage: img)
+                    .resizable()
+                    .scaledToFill()
+                    .clipShape(RoundedRectangle(cornerRadius: 7))
+            } else {
+                Text(card.suitSymbol)
+                    .font(.app(18))
             }
-            .frame(width: cards.count == 1 ? 30 : 48, height: 44)
         }
+        .shadow(color: .black.opacity(0.15), radius: 4, x: 0, y: 2)
     }
 }
