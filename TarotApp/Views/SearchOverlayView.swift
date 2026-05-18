@@ -61,6 +61,8 @@ struct SearchOverlayView: View {
             }
         }
         .onAppear {
+            query = ""
+            debouncedQuery = ""
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 searchFocused = true
             }
@@ -83,7 +85,8 @@ struct SearchOverlayView: View {
                 cursorColor: nsWhite,
                 isFocused: searchFocused,
                 onSubmit: { if let first = results.first { openCard(first) } },
-                onEscape: { handleEscape() }
+                onEscape: { handleEscape() },
+                onTab: { OverlayMode.shared.toggle() }
             )
 
             if !query.isEmpty {
@@ -92,6 +95,12 @@ struct SearchOverlayView: View {
                         .foregroundColor(.white.opacity(0.3))
                 }
                 .buttonStyle(.plain)
+            }
+
+            if query.isEmpty {
+                Text("⇥ Journal")
+                    .font(.system(size: 10))
+                    .foregroundColor(.white.opacity(0.25))
             }
         }
         .padding(.horizontal, 20)

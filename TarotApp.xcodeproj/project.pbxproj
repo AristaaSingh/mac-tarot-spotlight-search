@@ -7,9 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1505DFE384C738AB5E4729A4 /* ReadingEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 182D67C21835C5076B8EE713 /* ReadingEntry.swift */; };
 		154C4DF80E929AE03801EFC4 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D7560C290B608359BE2A36D /* Cocoa.framework */; };
 		191A9369F777B6224CB50644 /* ContentEditorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D7B32ABBEC0A0EBBB48CCCC /* ContentEditorWindowController.swift */; };
 		23F294F186D091D999A3CFCC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5C8FF89CD3C299500052AAFB /* Assets.xcassets */; };
+		35734417419354E45E454EF8 /* JournalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0595B0D6622B679C6570E2CA /* JournalView.swift */; };
 		454A17797CAF7860248E5A44 /* CardThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFC4BFDEF69FD279DC638105 /* CardThumbnailView.swift */; };
 		488F7CCFAEFD54D754E07268 /* KeywordsEditorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A19C76503213452F5DFC /* KeywordsEditorWindowController.swift */; };
 		495E5DDA839B7AAD291CD81E /* dreamy-banner.gif in Resources */ = {isa = PBXBuildFile; fileRef = 8649834877860963BEEFA942 /* dreamy-banner.gif */; };
@@ -23,8 +25,10 @@
 		90F53FD1F394EF1463CDC5EB /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95833A7D362CC6138BCBAC7 /* FlowLayout.swift */; };
 		91FDA137CC83023583F339EA /* ContentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84D013B3C56F7EB631186513 /* ContentStore.swift */; };
 		95301734F9525C12124C2CEB /* ThumbnailWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3221B4DD44C2281BC645E73F /* ThumbnailWindowManager.swift */; };
+		9E9686FACA5E0B367BA7C7FE /* OverlayMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8120E1BD1F10AF46E2DB444 /* OverlayMode.swift */; };
 		A32A77B023E567ECF8B3D94C /* Font+App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC22BA2E50261EEFBD07A5A /* Font+App.swift */; };
 		A3BA099F652D81C94DE85D7B /* OverlayWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C06B60F82CCF46E5C95C3AD /* OverlayWindowController.swift */; };
+		A90569E2F90C4BAACA8AB986 /* ReadingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1867D12B236E69DB4E23DEB5 /* ReadingStore.swift */; };
 		C97C28DFA88BD03DE0078EDD /* keyword-window-bg.gif in Resources */ = {isa = PBXBuildFile; fileRef = BBE10CC6F626AB0782DB7E03 /* keyword-window-bg.gif */; };
 		CAFB75F5FBFF4C9BD20BF8A3 /* AnimatedGIFView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90010721339F24A2D616A50 /* AnimatedGIFView.swift */; };
 		D51A45F193E70FABB08F060F /* CardData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D47B5E58D0C47D0C749D63 /* CardData.swift */; };
@@ -33,7 +37,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0595B0D6622B679C6570E2CA /* JournalView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = JournalView.swift; sourceTree = "<group>"; };
 		0D7560C290B608359BE2A36D /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		182D67C21835C5076B8EE713 /* ReadingEntry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReadingEntry.swift; sourceTree = "<group>"; };
+		1867D12B236E69DB4E23DEB5 /* ReadingStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReadingStore.swift; sourceTree = "<group>"; };
 		1DC22BA2E50261EEFBD07A5A /* Font+App.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "Font+App.swift"; sourceTree = "<group>"; };
 		29E5FA0A830555929D953EDB /* TarotCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TarotCard.swift; sourceTree = "<group>"; };
 		3221B4DD44C2281BC645E73F /* ThumbnailWindowManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThumbnailWindowManager.swift; sourceTree = "<group>"; };
@@ -56,6 +63,7 @@
 		B2616B2C427566061D1D8346 /* SearchOverlayView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchOverlayView.swift; sourceTree = "<group>"; };
 		B95833A7D362CC6138BCBAC7 /* FlowLayout.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
 		BBE10CC6F626AB0782DB7E03 /* keyword-window-bg.gif */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.gif; path = "keyword-window-bg.gif"; sourceTree = "<group>"; };
+		C8120E1BD1F10AF46E2DB444 /* OverlayMode.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OverlayMode.swift; sourceTree = "<group>"; };
 		CFC4BFDEF69FD279DC638105 /* CardThumbnailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardThumbnailView.swift; sourceTree = "<group>"; };
 		D0B6A19C76503213452F5DFC /* KeywordsEditorWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeywordsEditorWindowController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -90,6 +98,7 @@
 				CFC4BFDEF69FD279DC638105 /* CardThumbnailView.swift */,
 				A90010721339F24A2D616A50 /* AnimatedGIFView.swift */,
 				B95833A7D362CC6138BCBAC7 /* FlowLayout.swift */,
+				0595B0D6622B679C6570E2CA /* JournalView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -130,6 +139,8 @@
 				8D7B32ABBEC0A0EBBB48CCCC /* ContentEditorWindowController.swift */,
 				D0B6A19C76503213452F5DFC /* KeywordsEditorWindowController.swift */,
 				9D041D87970957C69FA510AB /* AppTextView.swift */,
+				1867D12B236E69DB4E23DEB5 /* ReadingStore.swift */,
+				C8120E1BD1F10AF46E2DB444 /* OverlayMode.swift */,
 			);
 			path = TarotApp;
 			sourceTree = "<group>";
@@ -139,6 +150,7 @@
 			children = (
 				29E5FA0A830555929D953EDB /* TarotCard.swift */,
 				68D47B5E58D0C47D0C749D63 /* CardData.swift */,
+				182D67C21835C5076B8EE713 /* ReadingEntry.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -215,7 +227,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				23F294F186D091D999A3CFCC /* Assets.xcassets in Resources */,
-				57118D9F83B701D47C04327A /* Cards in Resources */,
+				57118D9F83B701D47C04327A /* Card-Images in Resources */,
 				495E5DDA839B7AAD291CD81E /* dreamy-banner.gif in Resources */,
 				C97C28DFA88BD03DE0078EDD /* keyword-window-bg.gif in Resources */,
 			);
@@ -245,6 +257,10 @@
 				191A9369F777B6224CB50644 /* ContentEditorWindowController.swift in Sources */,
 				488F7CCFAEFD54D754E07268 /* KeywordsEditorWindowController.swift in Sources */,
 				DE6C77075979D897A55F13C2 /* AppTextView.swift in Sources */,
+				1505DFE384C738AB5E4729A4 /* ReadingEntry.swift in Sources */,
+				A90569E2F90C4BAACA8AB986 /* ReadingStore.swift in Sources */,
+				9E9686FACA5E0B367BA7C7FE /* OverlayMode.swift in Sources */,
+				35734417419354E45E454EF8 /* JournalView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
