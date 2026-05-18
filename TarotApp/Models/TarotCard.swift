@@ -23,10 +23,9 @@ struct TarotCard: Identifiable, Codable {
     let element: String
     var url: String?
 
-    // Loads from the Cards/ bundle folder, trying jpg then png
     var image: NSImage? {
         for ext in ["jpg", "png", "jpeg", "webp"] {
-            if let url = Bundle.main.url(forResource: id, withExtension: ext, subdirectory: "Cards"),
+            if let url = Bundle.main.url(forResource: id, withExtension: ext, subdirectory: "Card-Images"),
                let img = NSImage(contentsOf: url) { return img }
         }
         return nil

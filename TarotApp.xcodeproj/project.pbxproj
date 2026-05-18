@@ -14,7 +14,7 @@
 		488F7CCFAEFD54D754E07268 /* KeywordsEditorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A19C76503213452F5DFC /* KeywordsEditorWindowController.swift */; };
 		495E5DDA839B7AAD291CD81E /* dreamy-banner.gif in Resources */ = {isa = PBXBuildFile; fileRef = 8649834877860963BEEFA942 /* dreamy-banner.gif */; };
 		4E8D61BC6201756F99C28BA0 /* TarotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D0834B607D9E69DEE8C0DEB /* TarotApp.swift */; };
-		57118D9F83B701D47C04327A /* Cards in Resources */ = {isa = PBXBuildFile; fileRef = 65F9D6C6DC874B4D95EE5A06 /* Cards */; };
+		57118D9F83B701D47C04327A /* Card-Images in Resources */ = {isa = PBXBuildFile; fileRef = 65F9D6C6DC874B4D95EE5A06 /* Card-Images */; };
 		5C70BA0793AAF4EC4C5AC563 /* CardContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CA408FA70366ACA90695D5F /* CardContentView.swift */; };
 		7A487D1ACDBE5E2853772FD2 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EB80078ED6E7C4C705CBA57 /* Cocoa.framework */; };
 		837F91456E3AE0BA8F2698D9 /* TarotCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29E5FA0A830555929D953EDB /* TarotCard.swift */; };
@@ -43,7 +43,7 @@
 		5B85C4F6CB163DAFC566DD73 /* TarotApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TarotApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5C8FF89CD3C299500052AAFB /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		61F2E92311DD68A6A85B8E5B /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		65F9D6C6DC874B4D95EE5A06 /* Cards */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder; path = Cards; sourceTree = "<group>"; };
+		65F9D6C6DC874B4D95EE5A06 /* Card-Images */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder; path = "Card-Images"; sourceTree = "<group>"; };
 		68D47B5E58D0C47D0C749D63 /* CardData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardData.swift; sourceTree = "<group>"; };
 		6C06B60F82CCF46E5C95C3AD /* OverlayWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OverlayWindowController.swift; sourceTree = "<group>"; };
 		84D013B3C56F7EB631186513 /* ContentStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentStore.swift; sourceTree = "<group>"; };
@@ -122,7 +122,7 @@
 				5C8FF89CD3C299500052AAFB /* Assets.xcassets */,
 				61F2E92311DD68A6A85B8E5B /* Info.plist */,
 				8D6D73C4613D9F3B82EE8935 /* CardPopupWindowController.swift */,
-				65F9D6C6DC874B4D95EE5A06 /* Cards */,
+				65F9D6C6DC874B4D95EE5A06 /* Card-Images */,
 				84D013B3C56F7EB631186513 /* ContentStore.swift */,
 				3221B4DD44C2281BC645E73F /* ThumbnailWindowManager.swift */,
 				1DC22BA2E50261EEFBD07A5A /* Font+App.swift */,

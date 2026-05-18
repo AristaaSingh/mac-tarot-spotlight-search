@@ -73,7 +73,7 @@ struct CardDetailPopupView: View {
 
     @State private var isReversed = false
     @State private var appeared   = false
-    @State private var content    = CardContent(upright: "", reversed: "", personalNote: "", uprightKeywords: nil, reversedKeywords: nil)
+    @State private var content    = CardContent(upright: "", reversed: "", uprightKeywords: nil, reversedKeywords: nil)
     @State private var editorWindow: ContentEditorWindowController?
 
     private func p<T>(_ upright: T, _ reversed: T) -> T { isReversed ? reversed : upright }
@@ -166,7 +166,7 @@ struct CardDetailPopupView: View {
                     // Keywords
                     VStack(alignment: .leading, spacing: 8) {
                         HStack(spacing: 6) {
-                            sectionLabel("Keywords", icon: "tag")
+                            sectionLabel("Keywords", icon: "books.vertical")
                             Button(action: openKeywordsEditor) {
                                 Image(systemName: "pencil")
                                     .font(.system(size: 9, weight: .medium))
@@ -201,16 +201,11 @@ struct CardDetailPopupView: View {
                     // Meaning
                     meaningSection(
                         title: isReversed ? "Reversed" : "Upright",
-                        icon:  isReversed ? "arrow.counterclockwise" : "sun.max",
+                        icon:  isReversed ? "roman.shade.closed" : "roman.shade.open",
                         text:  isReversed ? content.reversed : content.upright,
+                        animateIcon: true,
                         onEdit: { openEditor(section: isReversed ? "Reversed" : "Upright") }
                     )
-
-                    if !content.personalNote.isEmpty {
-                        Divider().background(p(Palette.uprightDivider, Palette.reversedDivider))
-                        meaningSection(title: "My Notes", icon: "moon.stars",
-                                       text: content.personalNote)
-                    }
 
                     Spacer(minLength: 16)
                 }
@@ -292,10 +287,24 @@ struct CardDetailPopupView: View {
         editor.show()
     }
 
-    private func meaningSection(title: String, icon: String, text: String, onEdit: (() -> Void)? = nil) -> some View {
+    private func meaningSection(title: String, icon: String, text: String, animateIcon: Bool = false, onEdit: (() -> Void)? = nil) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
-                sectionLabel(title, icon: icon)
+                if animateIcon {
+                    HStack(spacing: 6) {
+                        Image(systemName: icon)
+                            .font(.app(11, weight: .semibold))
+                            .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
+                            .contentTransition(.symbolEffect(.replace.downUp))
+                        Text(title)
+                            .font(.app(11, weight: .semibold))
+                            .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
+                            .textCase(.uppercase)
+                            .kerning(0.8)
+                    }
+                } else {
+                    sectionLabel(title, icon: icon)
+                }
                 if let onEdit {
                     Button(action: onEdit) {
                         Image(systemName: "pencil")

@@ -3,9 +3,8 @@ import Foundation
 struct CardContent: Codable {
     var upright:          String
     var reversed:         String
-    var personalNote:     String
-    var uprightKeywords:  [String]?  // nil = never customised, fall back to TarotCard.keywords
-    var reversedKeywords: [String]?  // nil = never customised, fall back to TarotCard.keywords
+    var uprightKeywords:  [String]?
+    var reversedKeywords: [String]?
 }
 
 class ContentStore {
@@ -22,7 +21,7 @@ class ContentStore {
     func content(for card: TarotCard) -> CardContent {
         let url = Self.fileURL(for: card)
         guard let text = try? String(contentsOf: url, encoding: .utf8) else {
-            return CardContent(upright: "", reversed: "", personalNote: "", uprightKeywords: nil, reversedKeywords: nil)
+            return CardContent(upright: "", reversed: "", uprightKeywords: nil, reversedKeywords: nil)
         }
         return parse(text)
     }
@@ -44,7 +43,7 @@ class ContentStore {
 
     func save(_ content: CardContent, for card: TarotCard) {
         let url = Self.fileURL(for: card)
-        var text = "## Upright\n\(content.upright)\n\n## Reversed\n\(content.reversed)\n\n## My Notes\n\(content.personalNote)\n"
+        var text = "## Upright\n\(content.upright)\n\n## Reversed\n\(content.reversed)\n"
         if let kws = content.uprightKeywords {
             text += "\n## Keywords Upright\n\(kws.joined(separator: "\n"))\n"
         }
@@ -59,7 +58,7 @@ class ContentStore {
     // MARK: - Markdown parser
 
     private func parse(_ text: String) -> CardContent {
-        var upright = "", reversed = "", notes = ""
+        var upright = "", reversed = ""
         var uprightKeywords:  [String]? = nil
         var reversedKeywords: [String]? = nil
         var current = ""
@@ -71,8 +70,8 @@ class ContentStore {
             case "## Reversed":
                 current = "reversed"
             case "## My Notes":
-                current = "notes"
-            case "## Keywords Upright", "## Keywords":  // migrate old format to upright
+                current = ""
+            case "## Keywords Upright", "## Keywords":
                 current = "kwUpright"
                 if uprightKeywords == nil { uprightKeywords = [] }
             case "## Keywords Reversed":
@@ -83,7 +82,6 @@ class ContentStore {
                 switch current {
                 case "upright":    upright  += line + "\n"
                 case "reversed":   reversed += line + "\n"
-                case "notes":      notes    += line + "\n"
                 case "kwUpright":  if !trimmed.isEmpty { uprightKeywords?.append(trimmed) }
                 case "kwReversed": if !trimmed.isEmpty { reversedKeywords?.append(trimmed) }
                 default: break
@@ -94,7 +92,6 @@ class ContentStore {
         return CardContent(
             upright:          upright.trimmingCharacters(in: .whitespacesAndNewlines),
             reversed:         reversed.trimmingCharacters(in: .whitespacesAndNewlines),
-            personalNote:     notes.trimmingCharacters(in: .whitespacesAndNewlines),
             uprightKeywords:  uprightKeywords,
             reversedKeywords: reversedKeywords
         )
