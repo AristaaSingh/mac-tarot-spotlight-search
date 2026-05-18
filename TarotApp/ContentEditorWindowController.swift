@@ -84,7 +84,7 @@ struct StyledTextEditor: NSViewRepresentable {
 class ContentEditorWindowController: NSWindowController {
 
     static let windowW: CGFloat = 1024
-    static let windowH: CGFloat = 500
+    static let windowH: CGFloat = 600
 
     private let state: EditorState
     private let onSave: (String) -> Void

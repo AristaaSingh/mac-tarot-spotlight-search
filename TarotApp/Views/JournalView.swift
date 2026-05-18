@@ -2,8 +2,9 @@ import SwiftUI
 
 struct JournalView: View {
     @StateObject private var store = ReadingStore.shared
-    @State private var query       = ""
-    @State private var appeared    = false
+    @State private var query        = ""
+    @State private var appeared     = false
+    @State private var searchFocused = false
 
     private let bg           = Color(red: 0.98, green: 0.96, blue: 0.94)
     private let ink          = Color(red: 0.278, green: 0, blue: 0.102)
@@ -70,7 +71,10 @@ struct JournalView: View {
         .frame(width: OverlayWindowController.journalW,
                height: OverlayWindowController.journalH)
         .opacity(appeared ? 1 : 0)
-        .onAppear { withAnimation(.easeOut(duration: 0.2)) { appeared = true } }
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.2)) { appeared = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { searchFocused = true }
+        }
         .onExitCommand { close() }
     }
 
@@ -85,10 +89,12 @@ struct JournalView: View {
             ThemedTextField(
                 text: $query,
                 placeholder: "Search readings…",
-                nsFont: NSFont(name: "Didot", size: 14) ?? .systemFont(ofSize: 14),
+                nsFont: NSFont(name: "Didot", size: 18) ?? .systemFont(ofSize: 18),
                 textColor: nsInk,
                 cursorColor: nsInk,
-                onEscape: { close() }
+                isFocused: searchFocused,
+                onEscape: { close() },
+                onTab: { OverlayMode.shared.toggle() }
             )
 
             if !query.isEmpty {

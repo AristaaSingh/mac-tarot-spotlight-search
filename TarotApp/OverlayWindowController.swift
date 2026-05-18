@@ -63,24 +63,50 @@ class OverlayWindowController: NSWindowController {
         guard let panel = window, let screen = NSScreen.main else { return }
         let frame = frameForMode(OverlayMode.shared.current, screen: screen)
         panel.setFrame(frame, display: false)
+        panel.alphaValue = 1
         NSApp.activate(ignoringOtherApps: true)
         panel.makeKeyAndOrderFront(nil)
     }
 
     func hide() {
         ThumbnailWindowManager.shared.clear()
-        window?.orderOut(nil)
-        OverlayMode.shared.current = .search
+        guard let panel = window else { return }
+        NSAnimationContext.beginGrouping()
+        NSAnimationContext.current.duration = 0.2
+        NSAnimationContext.current.timingFunction = CAMediaTimingFunction(name: .easeIn)
+        panel.animator().alphaValue = 0
+        NSAnimationContext.endGrouping()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            panel.orderOut(nil)
+            panel.alphaValue = 1
+            OverlayMode.shared.displayed = .search
+            OverlayMode.shared.current   = .search
+        }
     }
 
     private func animateToMode(_ mode: OverlayMode.Mode) {
         ThumbnailWindowManager.shared.clear()
-        guard let panel = window, let screen = NSScreen.main else { return }
+        guard let panel = window, panel.isVisible, let screen = NSScreen.main else { return }
         let newFrame = frameForMode(mode, screen: screen)
-        NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.3
-            ctx.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            panel.animator().setFrame(newFrame, display: true)
+
+        // Step 1 — fade out current content
+        NSAnimationContext.beginGrouping()
+        NSAnimationContext.current.duration = 0.12
+        NSAnimationContext.current.timingFunction = CAMediaTimingFunction(name: .easeIn)
+        panel.animator().alphaValue = 0
+        NSAnimationContext.endGrouping()
+
+        // Step 2 — after fade: snap to new size, swap content
+        // Step 3 — fade new content back in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+            panel.setFrame(newFrame, display: true)
+            OverlayMode.shared.displayed = mode
+
+            NSAnimationContext.beginGrouping()
+            NSAnimationContext.current.duration = 0.18
+            NSAnimationContext.current.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            panel.animator().alphaValue = 1
+            NSAnimationContext.endGrouping()
         }
     }
 
@@ -102,7 +128,7 @@ class OverlayWindowController: NSWindowController {
 struct OverlayRootView: View {
     @ObservedObject var mode = OverlayMode.shared
     var body: some View {
-        switch mode.current {
+        switch mode.displayed {
         case .search:  SearchOverlayView()
         case .journal: JournalView()
         }

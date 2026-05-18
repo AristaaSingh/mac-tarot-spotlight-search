@@ -132,8 +132,8 @@ class ReadingWindowController: NSWindowController, NSWindowDelegate {
     let entryID: String
     private var eventMonitor: Any?
 
-    static let windowW: CGFloat = 620
-    static let windowH: CGFloat = 580
+    static let windowW: CGFloat = 1024
+    static let windowH: CGFloat = 600
 
     init(entry: ReadingEntry, isNew: Bool) {
         self.entryID = entry.id

@@ -12,6 +12,7 @@ struct ReadingEditorView: View {
     @State private var bodyHeight: CGFloat = 44
     @State private var pickingForID: String? = nil
     @State private var cardPickerQuery = ""
+    @State private var showDatePicker = false
 
     private let bg     = Color(red: 0.98, green: 0.96, blue: 0.94)
     private let ink    = Color(red: 0.278, green: 0, blue: 0.102)
@@ -19,7 +20,7 @@ struct ReadingEditorView: View {
     private let subtle = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.07)
     private let nsInk    = NSColor(red: 0.278, green: 0, blue: 0.102, alpha: 1)
     private let nsFont14 = NSFont(name: "Didot", size: 14) ?? NSFont.systemFont(ofSize: 14)
-    private let nsFont20 = NSFont(name: "Didot", size: 20) ?? NSFont.systemFont(ofSize: 20)
+    private let nsFont24 = NSFont(name: "Didot", size: 24) ?? NSFont.systemFont(ofSize: 24)
 
     init(entry: ReadingEntry, isNew: Bool,
          onSave:   @escaping (ReadingEntry) -> Void,
@@ -81,21 +82,25 @@ struct ReadingEditorView: View {
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
 
-                        Text(Self.dateFmt.string(from: draft.date))
-                            .font(.app(11))
-                            .foregroundColor(faint)
-                            .textCase(.uppercase)
-                            .kerning(0.8)
-                            .padding(.bottom, 12)
+                        // Title + date on the same line
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            ThemedTextField(
+                                text: $draft.title,
+                                placeholder: "Title…",
+                                nsFont: nsFont24,
+                                textColor: nsInk,
+                                cursorColor: nsInk,
+                                onEscape: { onClose() }
+                            )
 
-                        ThemedTextField(
-                            text: $draft.title,
-                            placeholder: "Title…",
-                            nsFont: nsFont20,
-                            textColor: nsInk,
-                            cursorColor: nsInk,
-                            onEscape: { onClose() }
-                        )
+                            DateBubbleButton(date: draft.date, faint: faint) {
+                                showDatePicker.toggle()
+                            }
+                            .popover(isPresented: $showDatePicker, arrowEdge: .bottom) {
+                                CalendarPicker(selection: $draft.date)
+                            }
+                            .fixedSize()
+                        }
                         .padding(.bottom, 16)
 
                         // Body — starts 2 lines, grows as you type
@@ -223,6 +228,54 @@ struct ReadingEditorView: View {
     }
 }
 
+// MARK: - Date Bubble Button
+
+private struct DateBubbleButton: View {
+    let date:   Date
+    let faint:  Color
+    let action: () -> Void
+
+    @State private var isHovered = false
+    @State private var isPressed = false
+
+    private static let fmt: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "d MMM yyyy"; return f
+    }()
+
+    private let face  = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.11)
+    private let hover = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.18)
+    private let ink   = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.60)
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Text(Self.fmt.string(from: date).uppercased())
+                    .font(.app(10, weight: .semibold))
+                    .kerning(0.7)
+                Image(systemName: "calendar")
+                    .font(.system(size: 9, weight: .medium))
+            }
+            .foregroundColor(ink)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(isHovered ? hover : face)
+            )
+            .scaleEffect(isPressed ? 0.96 : 1)
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in isPressed = true }
+                .onEnded   { _ in isPressed = false }
+        )
+        .animation(.easeOut(duration: 0.1), value: isHovered)
+        .animation(.spring(response: 0.12, dampingFraction: 0.7), value: isPressed)
+    }
+}
+
 // MARK: - Card Entry Row
 
 struct CardEntryRow: View {
@@ -236,7 +289,7 @@ struct CardEntryRow: View {
     private let faint  = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.35)
     private let subtle = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.07)
     private let nsInk    = NSColor(red: 0.278, green: 0, blue: 0.102, alpha: 1)
-    private let nsFont13 = NSFont(name: "Didot", size: 13) ?? NSFont.systemFont(ofSize: 13)
+    private let nsFont13 = NSFont(name: "Didot", size: 14) ?? NSFont.systemFont(ofSize: 14)
 
     var card: TarotCard? { allCards.first { $0.id == cardEntry.cardID } }
 
@@ -344,7 +397,7 @@ struct CardPickerView: View {
             ThemedTextField(
                 text: $query,
                 placeholder: "Search cards…",
-                nsFont: NSFont(name: "Didot", size: 16) ?? .systemFont(ofSize: 16),
+                nsFont: NSFont(name: "Didot", size: 18) ?? .systemFont(ofSize: 18),
                 textColor: nsInk,
                 cursorColor: nsInk,
                 isFocused: true,
