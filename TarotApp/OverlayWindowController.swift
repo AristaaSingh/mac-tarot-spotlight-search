@@ -15,8 +15,8 @@ class OverlayWindowController: NSWindowController {
     static let panelHeight: CGFloat = 64
     static let searchW:     CGFloat = 540
     static let searchH:     CGFloat = 64
-    static let journalW:    CGFloat = 1024
-    static let journalH:    CGFloat = 500
+    static let journalW:    CGFloat = 540
+    static let journalH:    CGFloat = 520
 
     private var hostingView: NSHostingView<OverlayRootView>?
     private var modeCancellable: AnyCancellable?
