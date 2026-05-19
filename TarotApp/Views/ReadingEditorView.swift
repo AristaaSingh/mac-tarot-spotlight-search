@@ -14,14 +14,6 @@ struct ReadingEditorView: View {
     @State private var cardPickerQuery = ""
     @State private var showDatePicker = false
 
-    private let bg     = Color(red: 0.98, green: 0.96, blue: 0.94)
-    private let ink    = Color(red: 0.278, green: 0, blue: 0.102)
-    private let faint  = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.38)
-    private let subtle = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.07)
-    private let nsInk    = NSColor(red: 0.278, green: 0, blue: 0.102, alpha: 1)
-    private let nsFont14 = NSFont(name: "Didot", size: 14) ?? NSFont.systemFont(ofSize: 14)
-    private let nsFont24 = NSFont(name: "Didot", size: 24) ?? NSFont.systemFont(ofSize: 24)
-
     init(entry: ReadingEntry, isNew: Bool,
          onSave:   @escaping (ReadingEntry) -> Void,
          onDelete: (() -> Void)? = nil,
@@ -55,9 +47,9 @@ struct ReadingEditorView: View {
                     Button(action: onClose) {
                         Image(systemName: "xmark")
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(faint)
+                            .foregroundColor(Theme.faint)
                             .frame(width: 22, height: 22)
-                            .background(subtle)
+                            .background(Theme.subtle)
                             .clipShape(Circle())
                     }
                     .buttonStyle(.plain)
@@ -66,7 +58,7 @@ struct ReadingEditorView: View {
 
                     Text(isNew ? "New Reading" : "Edit Reading")
                         .font(.app(12, weight: .semibold))
-                        .foregroundColor(faint)
+                        .foregroundColor(Theme.faint)
                         .kerning(0.6)
 
                     Spacer()
@@ -76,7 +68,7 @@ struct ReadingEditorView: View {
                 .padding(.top, 18)
                 .padding(.bottom, 12)
 
-                Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.08).frame(height: 1)
+                Theme.ink.opacity(0.08).frame(height: 1)
 
                 // ── Scrollable content ───────────────────────────────────
                 ScrollView(.vertical, showsIndicators: false) {
@@ -87,13 +79,13 @@ struct ReadingEditorView: View {
                             ThemedTextField(
                                 text: $draft.title,
                                 placeholder: "Title…",
-                                nsFont: nsFont24,
-                                textColor: nsInk,
-                                cursorColor: nsInk,
+                                nsFont: .didot(24),
+                                textColor: Theme.nsInk,
+                                cursorColor: Theme.nsInk,
                                 onEscape: { onClose() }
                             )
 
-                            DateBubbleButton(date: draft.date, faint: faint) {
+                            DateBubbleButton(date: draft.date) {
                                 showDatePicker.toggle()
                             }
                             .popover(isPresented: $showDatePicker, arrowEdge: .bottom) {
@@ -109,15 +101,15 @@ struct ReadingEditorView: View {
                                 text: $draft.body,
                                 height: $bodyHeight,
                                 minHeight: 44,
-                                nsFont: nsFont14,
-                                textColor: nsInk,
-                                cursorColor: nsInk
+                                nsFont: .didot(14),
+                                textColor: Theme.nsInk,
+                                cursorColor: Theme.nsInk
                             )
                             .frame(height: bodyHeight)
                             if draft.body.isEmpty {
                                 Text("Write freely…")
                                     .font(.appItalic(14))
-                                    .foregroundColor(Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.28))
+                                    .foregroundColor(Theme.ink.opacity(0.28))
                                     .padding(.top, 4)
                                     .allowsHitTesting(false)
                             }
@@ -141,7 +133,7 @@ struct ReadingEditorView: View {
                                 Text("Add card")
                                     .font(.app(13))
                             }
-                            .foregroundColor(faint)
+                            .foregroundColor(Theme.faint)
                             .padding(.vertical, 8)
                         }
                         .buttonStyle(.plain)
@@ -167,15 +159,15 @@ struct ReadingEditorView: View {
                 .background(
                     LinearGradient(
                         colors: [
-                            bg.opacity(0),
-                            bg.opacity(0.97),
-                            bg
+                            Theme.bg.opacity(0),
+                            Theme.bg.opacity(0.97),
+                            Theme.bg
                         ],
                         startPoint: .top, endPoint: .bottom
                     )
                 )
             }
-            .background(bg)
+            .background(Theme.bg)
 
             // ── Card picker search pill ──────────────────────────────────
             if pickingForID != nil {
@@ -232,7 +224,6 @@ struct ReadingEditorView: View {
 
 private struct DateBubbleButton: View {
     let date:   Date
-    let faint:  Color
     let action: () -> Void
 
     @State private var isHovered = false
@@ -242,9 +233,8 @@ private struct DateBubbleButton: View {
         let f = DateFormatter(); f.dateFormat = "d MMM yyyy"; return f
     }()
 
-    private let face  = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.11)
-    private let hover = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.18)
-    private let ink   = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.60)
+    private let face  = Theme.ink.opacity(0.11)
+    private let hover = Theme.ink.opacity(0.18)
 
     var body: some View {
         Button(action: action) {
@@ -255,7 +245,7 @@ private struct DateBubbleButton: View {
                 Image(systemName: "calendar")
                     .font(.system(size: 9, weight: .medium))
             }
-            .foregroundColor(ink)
+            .foregroundColor(Theme.ink.opacity(0.60))
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background(
@@ -285,12 +275,6 @@ struct CardEntryRow: View {
 
     @State private var noteHeight: CGFloat = 114
 
-    private let ink    = Color(red: 0.278, green: 0, blue: 0.102)
-    private let faint  = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.35)
-    private let subtle = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.07)
-    private let nsInk    = NSColor(red: 0.278, green: 0, blue: 0.102, alpha: 1)
-    private let nsFont13 = NSFont(name: "Didot", size: 14) ?? NSFont.systemFont(ofSize: 14)
-
     var card: TarotCard? { allCards.first { $0.id == cardEntry.cardID } }
 
     private let cardW:    CGFloat = 76
@@ -311,16 +295,16 @@ struct CardEntryRow: View {
                     height: $noteHeight,
                     minHeight: cardH,
                     exclusionRect: CGRect(x: 0, y: 0, width: exclusionW, height: exclusionH),
-                    nsFont: nsFont13,
-                    textColor: nsInk,
-                    cursorColor: nsInk
+                    nsFont: .didot(14),
+                    textColor: Theme.nsInk,
+                    cursorColor: Theme.nsInk
                 )
                 .frame(height: noteHeight)
 
                 if cardEntry.note.isEmpty {
                     Text("Write about this card…")
                         .font(.appItalic(13))
-                        .foregroundColor(Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.28))
+                        .foregroundColor(Theme.ink.opacity(0.28))
                         .padding(.leading, exclusionW + 5)
                         .padding(.top, 4)
                         .allowsHitTesting(false)
@@ -330,7 +314,7 @@ struct CardEntryRow: View {
             ZStack(alignment: .topTrailing) {
                 Button(action: onPick) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 10).fill(subtle)
+                        RoundedRectangle(cornerRadius: 10).fill(Theme.subtle)
                         if let card {
                             if let img = card.image {
                                 Image(nsImage: img)
@@ -341,7 +325,7 @@ struct CardEntryRow: View {
                                     Text(card.suitSymbol).font(.app(22))
                                     Text(card.name)
                                         .font(.app(8))
-                                        .foregroundColor(ink.opacity(0.7))
+                                        .foregroundColor(Theme.ink.opacity(0.7))
                                         .multilineTextAlignment(.center)
                                         .padding(.horizontal, 4)
                                 }
@@ -349,7 +333,7 @@ struct CardEntryRow: View {
                         } else {
                             Image(systemName: "plus")
                                 .font(.system(size: 20, weight: .light))
-                                .foregroundColor(faint)
+                                .foregroundColor(Theme.faint)
                         }
                     }
                     .frame(width: cardW, height: cardH)
@@ -359,9 +343,9 @@ struct CardEntryRow: View {
                 Button(action: onRemove) {
                     Image(systemName: "xmark")
                         .font(.system(size: 7, weight: .bold))
-                        .foregroundColor(faint)
+                        .foregroundColor(Theme.faint)
                         .frame(width: 16, height: 16)
-                        .background(Color(red: 0.98, green: 0.96, blue: 0.94))
+                        .background(Theme.bg)
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
@@ -369,7 +353,7 @@ struct CardEntryRow: View {
             }
 
             Rectangle()
-                .fill(Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.15))
+                .fill(Theme.ink.opacity(0.15))
                 .frame(width: dividerW, height: cardH)
                 .offset(x: cardW + gapW, y: 0)
         }
@@ -384,22 +368,18 @@ struct CardPickerView: View {
     let onSubmit:  () -> Void
     let onDismiss: () -> Void
 
-    private let bg    = Color(red: 0.98, green: 0.96, blue: 0.94)
-    private let faint = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.40)
-    private let nsInk = NSColor(red: 0.278, green: 0, blue: 0.102, alpha: 1)
-
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "moon.stars.fill")
                 .font(.app(15))
-                .foregroundColor(faint)
+                .foregroundColor(Theme.ink.opacity(0.40))
 
             ThemedTextField(
                 text: $query,
                 placeholder: "Search cards…",
-                nsFont: NSFont(name: "Didot", size: 18) ?? .systemFont(ofSize: 18),
-                textColor: nsInk,
-                cursorColor: nsInk,
+                nsFont: .didot(18),
+                textColor: Theme.nsInk,
+                cursorColor: Theme.nsInk,
                 isFocused: true,
                 onSubmit: onSubmit,
                 onEscape: onDismiss
@@ -409,7 +389,7 @@ struct CardPickerView: View {
                 Button { query = "" } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 14))
-                        .foregroundColor(faint.opacity(0.7))
+                        .foregroundColor(Theme.faint.opacity(0.7))
                 }
                 .buttonStyle(.plain)
             }
@@ -417,7 +397,7 @@ struct CardPickerView: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 14)
         .frame(width: 360)
-        .background(bg)
+        .background(Theme.bg)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 6)
     }
@@ -430,11 +410,10 @@ struct ReadingButtonStyle: ButtonStyle {
     @State private var isHovered = false
 
     func makeBody(configuration: Configuration) -> some View {
-        let ink  = Color(red: 0.278, green: 0, blue: 0.102)
-        let face = ink.opacity(primary ? (isHovered ? 1.0 : 0.85) : (isHovered ? 0.12 : 0.07))
+        let face = Theme.ink.opacity(primary ? (isHovered ? 1.0 : 0.85) : (isHovered ? 0.12 : 0.07))
         return configuration.label
             .font(.app(13, weight: .semibold))
-            .foregroundColor(primary ? .white : ink)
+            .foregroundColor(primary ? .white : Theme.ink)
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
             .background(face)

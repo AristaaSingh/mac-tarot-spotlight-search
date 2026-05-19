@@ -16,10 +16,6 @@ struct CalendarPicker: View {
         let f = DateFormatter(); f.dateFormat = "MMMM yyyy"; return f
     }()
 
-    private let bg     = Color(red: 0.98, green: 0.96, blue: 0.94)
-    private let ink    = Color(red: 0.278, green: 0, blue: 0.102)
-    private let faint  = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.35)
-
     init(selection: Binding<Date>) {
         _selection = selection
         var comps = Calendar(identifier: .gregorian)
@@ -59,7 +55,7 @@ struct CalendarPicker: View {
                 Button { shift(-1) } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(ink)
+                        .foregroundColor(Theme.ink)
                         .frame(width: 28, height: 28)
                 }
                 .buttonStyle(.plain)
@@ -68,14 +64,14 @@ struct CalendarPicker: View {
 
                 Text(Self.monthFmt.string(from: displayed))
                     .font(.custom("Didot", size: 15).weight(.semibold))
-                    .foregroundColor(ink)
+                    .foregroundColor(Theme.ink)
 
                 Spacer()
 
                 Button { shift(1) } label: {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(isCurrentMonth ? ink.opacity(0.18) : ink)
+                        .foregroundColor(isCurrentMonth ? Theme.ink.opacity(0.18) : Theme.ink)
                         .frame(width: 28, height: 28)
                 }
                 .buttonStyle(.plain)
@@ -87,7 +83,7 @@ struct CalendarPicker: View {
                 ForEach(Self.weekdayHeaders, id: \.self) { h in
                     Text(h)
                         .font(.custom("Didot", size: 11))
-                        .foregroundColor(faint)
+                        .foregroundColor(Theme.faint)
                         .frame(maxWidth: .infinity)
                 }
             }
@@ -103,9 +99,7 @@ struct CalendarPicker: View {
                         DayCell(
                             date:       day,
                             isSelected: Self.cal.isDate(day, inSameDayAs: selection),
-                            isToday:    Self.cal.isDateInToday(day),
-                            ink:        ink,
-                            faint:      faint
+                            isToday:    Self.cal.isDateInToday(day)
                         ) {
                             selection = day
                         }
@@ -117,7 +111,7 @@ struct CalendarPicker: View {
         }
         .padding(18)
         .frame(width: 300)
-        .background(bg)
+        .background(Theme.bg)
     }
 
     private var isCurrentMonth: Bool {
@@ -137,8 +131,6 @@ private struct DayCell: View {
     let date:       Date
     let isSelected: Bool
     let isToday:    Bool
-    let ink:        Color
-    let faint:      Color
     let onTap:      () -> Void
 
     @State private var isHovered = false
@@ -156,17 +148,17 @@ private struct DayCell: View {
             Text(day)
                 .font(.custom("Didot", size: 13))
                 .foregroundColor(
-                    isFuture   ? ink.opacity(0.18) :
+                    isFuture   ? Theme.ink.opacity(0.18) :
                     isSelected ? .white :
-                    isToday    ? ink   :
-                                 ink.opacity(0.75)
+                    isToday    ? Theme.ink :
+                                 Theme.ink.opacity(0.75)
                 )
                 .frame(width: 34, height: 34)
                 .background(
                     Circle().fill(
-                        isSelected && !isFuture ? ink :
-                        isToday                 ? ink.opacity(0.13) :
-                        isHovered && !isFuture  ? ink.opacity(0.07) :
+                        isSelected && !isFuture ? Theme.ink :
+                        isToday                 ? Theme.ink.opacity(0.13) :
+                        isHovered && !isFuture  ? Theme.ink.opacity(0.07) :
                                                   Color.clear
                     )
                 )

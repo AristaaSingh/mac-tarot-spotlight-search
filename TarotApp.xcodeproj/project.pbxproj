@@ -26,6 +26,7 @@
 		91FDA137CC83023583F339EA /* ContentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84D013B3C56F7EB631186513 /* ContentStore.swift */; };
 		95301734F9525C12124C2CEB /* ThumbnailWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3221B4DD44C2281BC645E73F /* ThumbnailWindowManager.swift */; };
 		9E9686FACA5E0B367BA7C7FE /* OverlayMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8120E1BD1F10AF46E2DB444 /* OverlayMode.swift */; };
+		8A55D2309A5948E8B87E4DB6 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D492FB3D25044149750AB74 /* Theme.swift */; };
 		A32A77B023E567ECF8B3D94C /* Font+App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC22BA2E50261EEFBD07A5A /* Font+App.swift */; };
 		A3BA099F652D81C94DE85D7B /* OverlayWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C06B60F82CCF46E5C95C3AD /* OverlayWindowController.swift */; };
 		A90569E2F90C4BAACA8AB986 /* ReadingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1867D12B236E69DB4E23DEB5 /* ReadingStore.swift */; };
@@ -44,6 +45,7 @@
 		0D7560C290B608359BE2A36D /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 		182D67C21835C5076B8EE713 /* ReadingEntry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReadingEntry.swift; sourceTree = "<group>"; };
 		1867D12B236E69DB4E23DEB5 /* ReadingStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReadingStore.swift; sourceTree = "<group>"; };
+		8D492FB3D25044149750AB74 /* Theme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		1DC22BA2E50261EEFBD07A5A /* Font+App.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "Font+App.swift"; sourceTree = "<group>"; };
 		29E5FA0A830555929D953EDB /* TarotCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TarotCard.swift; sourceTree = "<group>"; };
 		3221B4DD44C2281BC645E73F /* ThumbnailWindowManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThumbnailWindowManager.swift; sourceTree = "<group>"; };
@@ -142,6 +144,7 @@
 				65F9D6C6DC874B4D95EE5A06 /* Card-Images */,
 				84D013B3C56F7EB631186513 /* ContentStore.swift */,
 				3221B4DD44C2281BC645E73F /* ThumbnailWindowManager.swift */,
+				8D492FB3D25044149750AB74 /* Theme.swift */,
 				1DC22BA2E50261EEFBD07A5A /* Font+App.swift */,
 				C2E9E8375BFFC8BC39E5B416 /* Resources */,
 				8D7B32ABBEC0A0EBBB48CCCC /* ContentEditorWindowController.swift */,
@@ -261,6 +264,7 @@
 				454A17797CAF7860248E5A44 /* CardThumbnailView.swift in Sources */,
 				95301734F9525C12124C2CEB /* ThumbnailWindowManager.swift in Sources */,
 				CAFB75F5FBFF4C9BD20BF8A3 /* AnimatedGIFView.swift in Sources */,
+				8A55D2309A5948E8B87E4DB6 /* Theme.swift in Sources */,
 				A32A77B023E567ECF8B3D94C /* Font+App.swift in Sources */,
 				90F53FD1F394EF1463CDC5EB /* FlowLayout.swift in Sources */,
 				191A9369F777B6224CB50644 /* ContentEditorWindowController.swift in Sources */,

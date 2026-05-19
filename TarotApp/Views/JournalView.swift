@@ -6,13 +6,6 @@ struct JournalView: View {
     @State private var appeared     = false
     @State private var searchFocused = false
 
-    private let bg           = Color(red: 0.98, green: 0.96, blue: 0.94)
-    private let ink          = Color(red: 0.278, green: 0, blue: 0.102)
-    private let faint        = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.35)
-    private let subtle       = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.07)
-    private let dividerColor = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.10)
-    private let nsInk        = NSColor(red: 0.278, green: 0, blue: 0.102, alpha: 1)
-
     private let columns = [GridItem(.adaptive(minimum: 140, maximum: 180), spacing: 12)]
 
     private static let monthFmt: DateFormatter = {
@@ -48,9 +41,9 @@ struct JournalView: View {
         ZStack(alignment: .topLeading) {
             VStack(spacing: 0) {
                 header
-                dividerColor.frame(height: 1)
+                Theme.divider.frame(height: 1)
                 entryGrid
-                dividerColor.frame(height: 1)
+                Theme.divider.frame(height: 1)
                 newReadingButton
             }
 
@@ -58,15 +51,15 @@ struct JournalView: View {
             Button(action: close) {
                 Image(systemName: "xmark")
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(faint)
+                    .foregroundColor(Theme.faint)
                     .frame(width: 22, height: 22)
-                    .background(subtle)
+                    .background(Theme.subtle)
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
             .padding(14)
         }
-        .background(bg)
+        .background(Theme.bg)
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .frame(width: OverlayWindowController.journalW,
                height: OverlayWindowController.journalH)
@@ -84,14 +77,14 @@ struct JournalView: View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 13))
-                .foregroundColor(faint)
+                .foregroundColor(Theme.faint)
 
             ThemedTextField(
                 text: $query,
                 placeholder: "Search readings…",
-                nsFont: NSFont(name: "Didot", size: 18) ?? .systemFont(ofSize: 18),
-                textColor: nsInk,
-                cursorColor: nsInk,
+                nsFont: .didot(18),
+                textColor: Theme.nsInk,
+                cursorColor: Theme.nsInk,
                 isFocused: searchFocused,
                 onEscape: { close() },
                 onTab: { OverlayMode.shared.toggle() }
@@ -101,7 +94,7 @@ struct JournalView: View {
                 Button { query = "" } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 13))
-                        .foregroundColor(faint.opacity(0.6))
+                        .foregroundColor(Theme.faint.opacity(0.6))
                 }
                 .buttonStyle(.plain)
             }
@@ -119,10 +112,10 @@ struct JournalView: View {
                 VStack(spacing: 10) {
                     Image(systemName: "book.closed")
                         .font(.system(size: 28))
-                        .foregroundColor(faint.opacity(0.5))
+                        .foregroundColor(Theme.faint.opacity(0.5))
                     Text(query.isEmpty ? "No readings yet" : "No matches")
                         .font(.app(13))
-                        .foregroundColor(faint)
+                        .foregroundColor(Theme.faint)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -139,7 +132,7 @@ struct JournalView: View {
                             } header: {
                                 Text(group.month.uppercased())
                                     .font(.app(10, weight: .semibold))
-                                    .foregroundColor(faint)
+                                    .foregroundColor(Theme.faint)
                                     .kerning(1.4)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.top, 6)
@@ -164,7 +157,7 @@ struct JournalView: View {
                 Text("New Reading")
                     .font(.app(13, weight: .semibold))
             }
-            .foregroundColor(ink)
+            .foregroundColor(Theme.ink)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 13)
         }
@@ -179,10 +172,6 @@ struct JournalView: View {
 private struct ReadingThumbnail: View {
     let entry: ReadingEntry
     @State private var isHovered = false
-
-    private let ink    = Color(red: 0.278, green: 0, blue: 0.102)
-    private let faint  = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.38)
-    private let subtle = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.07)
 
     private static let dateFmt: DateFormatter = {
         let f = DateFormatter()
@@ -199,12 +188,12 @@ private struct ReadingThumbnail: View {
 
             // ── Card image area ──────────────────────────────────────────
             ZStack {
-                Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.05)
+                Theme.ink.opacity(0.05)
 
                 if cards.isEmpty {
                     Image(systemName: "book.closed")
                         .font(.system(size: 22))
-                        .foregroundColor(faint.opacity(0.5))
+                        .foregroundColor(Theme.faint.opacity(0.5))
                 } else {
                     // Fan of cards
                     let angles: [Double] = [-10, 0, 10]
@@ -229,27 +218,27 @@ private struct ReadingThumbnail: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(entry.title.isEmpty ? "Untitled" : entry.title)
                     .font(.app(12, weight: .semibold))
-                    .foregroundColor(entry.title.isEmpty ? faint : ink)
+                    .foregroundColor(entry.title.isEmpty ? Theme.faint : Theme.ink)
                     .lineLimit(2)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text(Self.dateFmt.string(from: entry.date))
                     .font(.app(10))
-                    .foregroundColor(faint)
+                    .foregroundColor(Theme.faint)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 9)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(red: 0.98, green: 0.96, blue: 0.94))
+            .background(Theme.bg)
             .clipShape(UnevenRoundedRectangle(bottomLeadingRadius: 14, bottomTrailingRadius: 14))
         }
         .background(
             RoundedRectangle(cornerRadius: 14)
-                .fill(Color(red: 0.98, green: 0.96, blue: 0.94))
+                .fill(Theme.bg)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(Color(red: 0.278, green: 0, blue: 0.102, opacity: isHovered ? 0.18 : 0.07), lineWidth: 1)
+                .stroke(Theme.ink.opacity(isHovered ? 0.18 : 0.07), lineWidth: 1)
         )
         .shadow(color: .black.opacity(isHovered ? 0.12 : 0.04), radius: isHovered ? 10 : 4, y: 2)
         .scaleEffect(isHovered ? 1.025 : 1)
@@ -262,12 +251,10 @@ private struct ReadingThumbnail: View {
 // Single card face used in the fan
 private struct CardFace: View {
     let card: TarotCard
-    private let subtle = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.08)
-    private let faint  = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.35)
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 7).fill(subtle)
+            RoundedRectangle(cornerRadius: 7).fill(Theme.ink.opacity(0.08))
             if let img = card.image {
                 Image(nsImage: img)
                     .resizable()

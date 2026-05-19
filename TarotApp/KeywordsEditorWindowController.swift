@@ -11,7 +11,7 @@ class KeywordsEditorWindowController: NSWindowController, NSWindowDelegate {
 
     private var fieldEditor: AppTextView?
     private weak var hosting: NSView?
-    private static let cursorColor = NSColor(red: 0.278, green: 0, blue: 0.102, alpha: 1)
+    private static let cursorColor = Theme.nsInk
 
     static let windowW: CGFloat = 360
     static let minH:    CGFloat = 200
@@ -125,24 +125,20 @@ private struct KeywordPill: View {
 
     @State private var isHovered = false
 
-    private let ink      = Color(red: 0.278, green: 0, blue: 0.102)
-    private let base     = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.08)
-    private let hovered  = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.18)
-
     var body: some View {
         ZStack {
             Text(text)
                 .font(.app(12))
-                .foregroundColor(ink)
+                .foregroundColor(Theme.ink)
                 .opacity(isHovered ? 0 : 1)
             Image(systemName: "trash")
                 .font(.system(size: 10, weight: .medium))
-                .foregroundColor(ink.opacity(0.7))
+                .foregroundColor(Theme.ink.opacity(0.7))
                 .opacity(isHovered ? 1 : 0)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
-        .background(isHovered ? hovered : base)
+        .background(isHovered ? Theme.ink.opacity(0.18) : Theme.ink.opacity(0.08))
         .clipShape(Capsule())
         .animation(.easeOut(duration: 0.12), value: isHovered)
         .onHover { isHovered = $0 }
@@ -163,14 +159,6 @@ private struct KeywordsEditorView: View {
     @State private var appeared     = false
     @State private var fieldFocused = false
 
-    private let nsInk = NSColor(red: 0.278, green: 0, blue: 0.102, alpha: 1)
-
-    private let ink      = Color(red: 0.278, green: 0, blue: 0.102)
-    private let mid      = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.50)
-    private let faint    = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.30)
-    private let bg       = Color(red: 0.98, green: 0.96, blue: 0.94)
-    private let accentBg = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.08)
-    private let fieldBg  = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.05)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -180,9 +168,9 @@ private struct KeywordsEditorView: View {
                     Button(action: onClose) {
                         Image(systemName: "xmark")
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(faint)
+                            .foregroundColor(Theme.faint)
                             .frame(width: 20, height: 20)
-                            .background(accentBg)
+                            .background(Theme.ink.opacity(0.08))
                             .clipShape(Circle())
                     }
                     .buttonStyle(.plain)
@@ -191,10 +179,10 @@ private struct KeywordsEditorView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(cardName)
                             .font(.app(22, weight: .bold))
-                            .foregroundColor(ink)
+                            .foregroundColor(Theme.ink)
                         Text(subtitle)
                             .font(.app(13))
-                            .foregroundColor(mid)
+                            .foregroundColor(Theme.mid)
                             .textCase(.uppercase)
                             .kerning(0.8)
                     }
@@ -207,23 +195,23 @@ private struct KeywordsEditorView: View {
                     ThemedTextField(
                         text: $newKeyword,
                         placeholder: "Add a keyword…",
-                        nsFont: NSFont(name: "Didot", size: 14) ?? .systemFont(ofSize: 14),
-                        textColor: nsInk,
-                        cursorColor: nsInk,
+                        nsFont: .didot(14),
+                        textColor: Theme.nsInk,
+                        cursorColor: Theme.nsInk,
                         isFocused: fieldFocused,
                         onSubmit: { addKeyword() }
                     )
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(fieldBg)
+                        .background(Theme.ink.opacity(0.05))
                         .clipShape(RoundedRectangle(cornerRadius: 8))
 
                     Button(action: addKeyword) {
                         Image(systemName: "plus")
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(ink)
+                            .foregroundColor(Theme.ink)
                             .frame(width: 32, height: 32)
-                            .background(accentBg)
+                            .background(Theme.ink.opacity(0.08))
                             .clipShape(Circle())
                     }
                     .buttonStyle(.plain)

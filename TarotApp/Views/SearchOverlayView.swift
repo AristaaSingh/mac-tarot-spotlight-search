@@ -80,7 +80,7 @@ struct SearchOverlayView: View {
             ThemedTextField(
                 text: $query,
                 placeholder: "Search cards…",
-                nsFont: NSFont(name: "Didot", size: 18) ?? .systemFont(ofSize: 18),
+                nsFont: .didot(18),
                 textColor: nsWhite,
                 cursorColor: nsWhite,
                 isFocused: searchFocused,
