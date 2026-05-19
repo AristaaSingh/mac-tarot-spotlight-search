@@ -90,12 +90,6 @@ private struct PickerThumbnailView: View {
     }
 }
 
-// MARK: - Borderless window that can still accept key events and become first responder.
-private class KeyableWindow: NSWindow {
-    override var canBecomeKey:  Bool { true }
-    override var canBecomeMain: Bool { true }
-}
-
 // MARK: - Manager
 
 class ReadingWindowManager {
@@ -145,12 +139,7 @@ class ReadingWindowController: NSWindowController, NSWindowDelegate {
             backing: .buffered,
             defer: false
         )
-        win.isOpaque = false
-        win.backgroundColor = .clear
-        win.hasShadow = true
-        win.isMovableByWindowBackground = true
-        win.level = .floating
-        win.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        win.applyAppStyle(collectionBehavior: [.canJoinAllSpaces, .fullScreenAuxiliary])
 
         super.init(window: win)
         win.delegate = self
@@ -183,15 +172,7 @@ class ReadingWindowController: NSWindowController, NSWindowDelegate {
     required init?(coder: NSCoder) { fatalError() }
 
     func show() {
-        window?.alphaValue = 0
-        NSApp.activate(ignoringOtherApps: true)
-        window?.makeKeyAndOrderFront(nil)
-        NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.25
-            ctx.timingFunction = CAMediaTimingFunction(name: .easeOut)
-            window?.animator().alphaValue = 1
-        }
-
+        showAnimated(duration: 0.25)
         // Cmd+S and Escape are handled inside ReadingEditorView (which has access to
         // the live draft). No window-level key monitor needed here.
     }

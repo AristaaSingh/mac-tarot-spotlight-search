@@ -28,12 +28,7 @@ class KeywordsEditorWindowController: NSWindowController, NSWindowDelegate {
             backing: .buffered,
             defer: false
         )
-        win.isOpaque = false
-        win.backgroundColor = .clear
-        win.hasShadow = true
-        win.isMovableByWindowBackground = true
-        win.level = .floating
-        win.collectionBehavior = [.canJoinAllSpaces]
+        win.applyAppStyle()
 
         super.init(window: win)
         win.delegate = self
@@ -110,11 +105,6 @@ class KeywordsEditorWindowController: NSWindowController, NSWindowDelegate {
             window?.animator().alphaValue = 1
         }
     }
-}
-
-// Needed for borderless window to accept key input
-private class KeyableWindow: NSWindow {
-    override var canBecomeKey: Bool { true }
 }
 
 // MARK: - Individual keyword pill

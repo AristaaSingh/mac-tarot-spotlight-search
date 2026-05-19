@@ -7,11 +7,6 @@ class EditorState: ObservableObject {
     init(_ text: String) { self.text = text }
 }
 
-// Borderless window that can become key so the text view accepts input
-private class KeyableWindow: NSWindow {
-    override var canBecomeKey: Bool { true }
-}
-
 // MARK: - NSViewRepresentable wrapping AppTextView
 
 struct StyledTextEditor: NSViewRepresentable {
@@ -104,12 +99,7 @@ class ContentEditorWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        win.isOpaque = false
-        win.backgroundColor = .clear
-        win.hasShadow = true
-        win.isMovableByWindowBackground = true
-        win.level = .floating
-        win.collectionBehavior = [.canJoinAllSpaces]
+        win.applyAppStyle()
 
         super.init(window: win)
 
@@ -146,15 +136,8 @@ class ContentEditorWindowController: NSWindowController {
     }
 
     func show() {
-        window?.alphaValue = 0
-        window?.orderFrontRegardless()
-        window?.makeKey()
-        NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.2
-            ctx.timingFunction = CAMediaTimingFunction(name: .easeOut)
-            window?.animator().alphaValue = 1
-        }
-        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+        showAnimated(duration: 0.2)
+        eventMonitor = addKeyMonitor { [weak self] event in
             if event.keyCode == 1 && event.modifierFlags.contains(.command) {
                 self?.saveAndClose()
                 return nil
