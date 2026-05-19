@@ -24,6 +24,19 @@ class AppTextView: NSTextView {
     }
 }
 
+// MARK: - Shared selection highlight
+
+extension NSTextView {
+    /// Applies the app's burgundy selection tint. Dark text on a light-burgundy background
+    /// so selected text stays readable against the beige canvas.
+    func applyAppSelectionStyle() {
+        selectedTextAttributes = [
+            .backgroundColor: Theme.nsInk.withAlphaComponent(0.15),
+            .foregroundColor:  Theme.nsInk
+        ]
+    }
+}
+
 // MARK: - Single-line themed text field
 
 // NSTextField subclass that injects cursor color into the shared field editor
@@ -142,6 +155,7 @@ struct GrowingTextEditor: NSViewRepresentable {
         if !exclusionRect.isEmpty {
             tv.textContainer?.exclusionPaths = [NSBezierPath(rect: exclusionRect)]
         }
+        tv.applyAppSelectionStyle()
         tv.delegate = context.coordinator
         tv.string = text
         return tv
@@ -215,6 +229,7 @@ struct ThemedTextEditor: NSViewRepresentable {
         tv.isVerticallyResizable = true
         tv.isHorizontallyResizable = false
         tv.autoresizingMask = [.width]
+        tv.applyAppSelectionStyle()
         tv.delegate = context.coordinator
 
         let sv = NSScrollView()

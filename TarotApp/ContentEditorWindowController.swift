@@ -54,6 +54,7 @@ struct StyledTextEditor: NSViewRepresentable {
             .paragraphStyle: style
         ]
         textView.string = text
+        textView.applyAppSelectionStyle()
 
         let scroll = NSScrollView()
         scroll.drawsBackground = false
