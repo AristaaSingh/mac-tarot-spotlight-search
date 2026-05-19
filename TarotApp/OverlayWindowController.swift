@@ -59,6 +59,27 @@ class OverlayWindowController: NSWindowController {
         if panel.isVisible { hide() } else { show() }
     }
 
+    /// Opens the overlay in a specific mode.
+    /// - If the panel is already visible, delegates to animateToMode (same as Tab).
+    /// - If hidden, sets both `current` and `displayed` before showing so the right
+    ///   content is rendered at the correct frame size from the first frame.
+    func showMode(_ mode: OverlayMode.Mode) {
+        guard let panel = window else { return }
+        if panel.isVisible {
+            guard OverlayMode.shared.current != mode else {
+                // Already in this mode — just bring it to front.
+                NSApp.activate(ignoringOtherApps: true)
+                panel.makeKeyAndOrderFront(nil)
+                return
+            }
+            OverlayMode.shared.current = mode   // triggers animateToMode via Combine
+        } else {
+            OverlayMode.shared.current   = mode
+            OverlayMode.shared.displayed = mode // skip animation, show correct content immediately
+            show()
+        }
+    }
+
     func show() {
         guard let panel = window, let screen = NSScreen.main else { return }
         let frame = frameForMode(OverlayMode.shared.current, screen: screen)

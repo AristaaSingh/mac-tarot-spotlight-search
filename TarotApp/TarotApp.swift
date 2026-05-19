@@ -10,14 +10,12 @@ struct TarotApp: App {
             .commands {
                 CommandMenu("Modes") {
                     Button("Search Cards") {
-                        OverlayMode.shared.current = .search
-                        OverlayWindowController.shared.show()
+                        OverlayWindowController.shared.showMode(.search)
                     }
                     .keyboardShortcut("1", modifiers: .command)
 
                     Button("Search Readings") {
-                        OverlayMode.shared.current = .journal
-                        OverlayWindowController.shared.show()
+                        OverlayWindowController.shared.showMode(.journal)
                     }
                     .keyboardShortcut("2", modifiers: .command)
                 }
