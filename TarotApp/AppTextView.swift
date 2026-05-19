@@ -128,6 +128,7 @@ struct GrowingTextEditor: NSViewRepresentable {
         tv.drawsBackground = false
         tv.backgroundColor = .clear
         tv.isRichText = false
+        tv.allowsUndo = true
         tv.isAutomaticSpellingCorrectionEnabled = false
         tv.isAutomaticQuoteSubstitutionEnabled = false
         tv.isAutomaticDashSubstitutionEnabled = false
@@ -147,7 +148,12 @@ struct GrowingTextEditor: NSViewRepresentable {
     }
 
     func updateNSView(_ tv: AppTextView, context: Context) {
-        if tv.string != text { tv.string = text }
+        // Use replaceCharacters instead of tv.string = text so that externally-driven
+        // updates go through the text storage (preserving the undo stack where possible).
+        if tv.string != text {
+            let full = NSRange(location: 0, length: (tv.string as NSString).length)
+            tv.textStorage?.replaceCharacters(in: full, with: text)
+        }
         tv.font = nsFont
         tv.textColor = textColor
         tv.insertionPointColor = cursorColor
@@ -201,6 +207,7 @@ struct ThemedTextEditor: NSViewRepresentable {
         tv.drawsBackground = false
         tv.backgroundColor = .clear
         tv.isRichText = false
+        tv.allowsUndo = true
         tv.isAutomaticSpellingCorrectionEnabled = false
         tv.isAutomaticQuoteSubstitutionEnabled = false
         tv.isAutomaticDashSubstitutionEnabled = false
@@ -222,7 +229,10 @@ struct ThemedTextEditor: NSViewRepresentable {
 
     func updateNSView(_ sv: NSScrollView, context: Context) {
         guard let tv = sv.documentView as? AppTextView else { return }
-        if tv.string != text { tv.string = text }
+        if tv.string != text {
+            let full = NSRange(location: 0, length: (tv.string as NSString).length)
+            tv.textStorage?.replaceCharacters(in: full, with: text)
+        }
         tv.font = nsFont
         tv.textColor = textColor
         tv.insertionPointColor = cursorColor

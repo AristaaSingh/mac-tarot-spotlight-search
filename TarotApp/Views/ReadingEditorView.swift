@@ -1,5 +1,43 @@
 import SwiftUI
 
+// MARK: - Card deletion undo proxy
+//
+// NSUndoManager needs a class (reference type) as its target.
+// This proxy holds a live Binding to the card entries array so that undo/redo
+// operations can modify state even when the SwiftUI view struct has been recreated.
+
+private final class CardUndoProxy: ObservableObject {
+    var cardEntries: Binding<[CardEntry]>?
+
+    // Live reference to the whole draft — Binding wraps @State storage, so it always
+    // reflects the current value even though it's only assigned once on appear.
+    var draft: Binding<ReadingEntry>?
+
+    // Retains the local key monitor so we can remove it on disappear.
+    var keyMonitor: Any?
+
+    /// Call this right before removing a card. Records undo (restore) + wires up redo (remove again).
+    func recordRemoval(of card: CardEntry, at idx: Int, undoManager: UndoManager?) {
+        undoManager?.registerUndo(withTarget: self) { [weak self] proxy in
+            let safeIdx = min(idx, proxy.cardEntries?.wrappedValue.count ?? 0)
+            proxy.cardEntries?.wrappedValue.insert(card, at: safeIdx)
+            // Registering undo while NSUndoManager.isUndoing == true pushes to the redo stack.
+            self?.recordInsertion(of: card, at: idx, undoManager: undoManager)
+        }
+        undoManager?.setActionName("Delete Card")
+    }
+
+    /// Called during undo (card was restored). Registers the inverse so redo removes it again.
+    private func recordInsertion(of card: CardEntry, at idx: Int, undoManager: UndoManager?) {
+        undoManager?.registerUndo(withTarget: self) { [weak self] proxy in
+            proxy.cardEntries?.wrappedValue.removeAll { $0.id == card.id }
+            self?.recordRemoval(of: card, at: idx, undoManager: undoManager)
+        }
+    }
+}
+
+// MARK: -
+
 // Standalone editor/detail panel — hosted in ReadingWindowController.
 
 struct ReadingEditorView: View {
@@ -13,6 +51,9 @@ struct ReadingEditorView: View {
     @State private var pickingForID: String? = nil
     @State private var cardPickerQuery = ""
     @State private var showDatePicker = false
+
+    @StateObject private var undoProxy = CardUndoProxy()
+    @Environment(\.undoManager) var undoManager
 
     init(entry: ReadingEntry, isNew: Bool,
          onSave:   @escaping (ReadingEntry) -> Void,
@@ -117,27 +158,31 @@ struct ReadingEditorView: View {
                         .padding(.bottom, 4)
 
                         // Card entries
-                        ForEach($draft.cardEntries) { $ce in
+                        // Use value-based ForEach + a safe Binding so that when an entry
+                        // is removed, any final updateNSView calls on GrowingTextEditor
+                        // don't access an out-of-bounds index and crash/loop.
+                        ForEach(draft.cardEntries, id: \.id) { ce in
                             CardEntryRow(
-                                cardEntry: $ce,
-                                onPick:   { pickingForID = ce.id },
-                                onRemove: { draft.cardEntries.removeAll { $0.id == ce.id } }
+                                cardEntry: Binding(
+                                    get: {
+                                        draft.cardEntries.first { $0.id == ce.id } ?? ce
+                                    },
+                                    set: { newVal in
+                                        if let idx = draft.cardEntries.firstIndex(where: { $0.id == ce.id }) {
+                                            draft.cardEntries[idx] = newVal
+                                        }
+                                    }
+                                ),
+                                        onPick:   { pickingForID = ce.id },
+                                onRemove: {
+                                    guard let idx = draft.cardEntries.firstIndex(where: { $0.id == ce.id }) else { return }
+                                    let removed = draft.cardEntries[idx]
+                                    undoProxy.recordRemoval(of: removed, at: idx, undoManager: undoManager)
+                                    draft.cardEntries.remove(at: idx)
+                                }
                             )
                             .padding(.bottom, 12)
                         }
-
-                        Button { draft.cardEntries.append(CardEntry()) } label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: "plus")
-                                    .font(.system(size: 11, weight: .semibold))
-                                Text("Add card")
-                                    .font(.app(13))
-                            }
-                            .foregroundColor(Theme.faint)
-                            .padding(.vertical, 8)
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.bottom, 24)
 
                         Spacer(minLength: 60)
                     }
@@ -146,11 +191,22 @@ struct ReadingEditorView: View {
 
                 // ── Fixed bottom bar ────────────────────────────────────
                 HStack {
+                    // Add card lives here so it can never overlap scroll content
+                    Button { draft.cardEntries.append(CardEntry()) } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 11, weight: .semibold))
+                            Text("Add card")
+                        }
+                    }
+                    .buttonStyle(ReadingButtonStyle(primary: false))
+
+                    Spacer()
+
                     if !isNew, let onDelete {
                         Button("Delete") { onDelete() }
                             .buttonStyle(ReadingButtonStyle(primary: false))
                     }
-                    Spacer()
                     Button("Save") { onSave(draft) }
                         .buttonStyle(ReadingButtonStyle(primary: true))
                 }
@@ -182,6 +238,26 @@ struct ReadingEditorView: View {
             }
         }
         .animation(.easeOut(duration: 0.15), value: pickingForID != nil)
+        // Give the undo proxy a live binding to the card entries array.
+        // Binding captures @State storage by reference, so one assignment in onAppear is enough.
+        .onAppear {
+            undoProxy.cardEntries = $draft.cardEntries
+            undoProxy.draft       = $draft
+
+            // Cmd+S and Escape both save + close.
+            undoProxy.keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak undoProxy] event in
+                let isEscape = event.keyCode == 53
+                let isCmdS   = event.keyCode == 1 && event.modifierFlags.contains(.command)
+                guard isEscape || isCmdS else { return event }
+                if let current = undoProxy?.draft?.wrappedValue {
+                    onSave(current)
+                }
+                return nil
+            }
+        }
+        .onDisappear {
+            if let m = undoProxy.keyMonitor { NSEvent.removeMonitor(m); undoProxy.keyMonitor = nil }
+        }
         // Drive thumbnail panels whenever the query changes
         .onChange(of: cardPickerQuery) { _ in
             guard pickingForID != nil else { return }
@@ -273,7 +349,8 @@ struct CardEntryRow: View {
     let onPick:   () -> Void
     let onRemove: () -> Void
 
-    @State private var noteHeight: CGFloat = 114
+    @State private var noteHeight:    CGFloat = 114
+    @State private var isCardHovered: Bool    = false
 
     var card: TarotCard? { allCards.first { $0.id == cardEntry.cardID } }
 
@@ -311,46 +388,47 @@ struct CardEntryRow: View {
                 }
             }
 
-            ZStack(alignment: .topTrailing) {
-                Button(action: onPick) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 10).fill(Theme.subtle)
-                        if let card {
-                            if let img = card.image {
-                                Image(nsImage: img)
-                                    .resizable().scaledToFill()
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                            } else {
-                                VStack(spacing: 4) {
-                                    Text(card.suitSymbol).font(.app(22))
-                                    Text(card.name)
-                                        .font(.app(8))
-                                        .foregroundColor(Theme.ink.opacity(0.7))
-                                        .multilineTextAlignment(.center)
-                                        .padding(.horizontal, 4)
-                                }
-                            }
-                        } else {
-                            Image(systemName: "plus")
-                                .font(.system(size: 20, weight: .light))
-                                .foregroundColor(Theme.faint)
-                        }
-                    }
-                    .frame(width: cardW, height: cardH)
-                }
-                .buttonStyle(.plain)
+            // ── Card slot ────────────────────────────────────────────────
+            Button(action: card != nil ? onRemove : onPick) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10).fill(Theme.subtle)
 
-                Button(action: onRemove) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 7, weight: .bold))
-                        .foregroundColor(Theme.faint)
-                        .frame(width: 16, height: 16)
-                        .background(Theme.bg)
-                        .clipShape(Circle())
+                    if let card {
+                        // Card image or symbol fallback
+                        if let img = card.image {
+                            Image(nsImage: img)
+                                .resizable().scaledToFill()
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                        } else {
+                            VStack(spacing: 4) {
+                                Text(card.suitSymbol).font(.app(22))
+                                Text(card.name)
+                                    .font(.app(8))
+                                    .foregroundColor(Theme.ink.opacity(0.7))
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 4)
+                            }
+                        }
+
+                        // Hover overlay — dark tint + trash icon
+                        if isCardHovered {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.black.opacity(0.45))
+                            Image(systemName: "trash")
+                                .font(.system(size: 18, weight: .light))
+                                .foregroundColor(.white.opacity(0.90))
+                        }
+                    } else {
+                        Image(systemName: "plus")
+                            .font(.system(size: 20, weight: .light))
+                            .foregroundColor(Theme.faint)
+                    }
                 }
-                .buttonStyle(.plain)
-                .offset(x: 4, y: -4)
+                .frame(width: cardW, height: cardH)
             }
+            .buttonStyle(.plain)
+            .onHover { isCardHovered = card != nil && $0 }
+            .animation(.easeOut(duration: 0.12), value: isCardHovered)
 
             Rectangle()
                 .fill(Theme.ink.opacity(0.15))

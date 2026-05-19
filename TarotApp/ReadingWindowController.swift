@@ -130,7 +130,6 @@ class ReadingWindowManager {
 class ReadingWindowController: NSWindowController, NSWindowDelegate {
 
     let entryID: String
-    private var eventMonitor: Any?
 
     static let windowW: CGFloat = 1024
     static let windowH: CGFloat = 600
@@ -193,15 +192,11 @@ class ReadingWindowController: NSWindowController, NSWindowDelegate {
             window?.animator().alphaValue = 1
         }
 
-        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard event.keyCode == 53 else { return event }   // Escape
-            self?.window?.close()
-            return nil
-        }
+        // Cmd+S and Escape are handled inside ReadingEditorView (which has access to
+        // the live draft). No window-level key monitor needed here.
     }
 
     func windowWillClose(_ notification: Notification) {
-        if let m = eventMonitor { NSEvent.removeMonitor(m); eventMonitor = nil }
         ReadingWindowManager.shared.remove(self)
     }
 

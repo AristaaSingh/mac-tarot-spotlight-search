@@ -66,7 +66,10 @@ struct StyledTextEditor: NSViewRepresentable {
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let textView = scrollView.documentView as? AppTextView else { return }
-        if textView.string != text { textView.string = text }
+        if textView.string != text {
+            let full = NSRange(location: 0, length: (textView.string as NSString).length)
+            textView.textStorage?.replaceCharacters(in: full, with: text)
+        }
     }
 
     class Coordinator: NSObject, NSTextViewDelegate {
