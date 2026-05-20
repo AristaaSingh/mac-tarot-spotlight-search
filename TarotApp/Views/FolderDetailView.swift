@@ -81,13 +81,7 @@ struct FolderDetailView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            // Back button
-            Button(action: onBack) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(Theme.ink)
-            }
-            .buttonStyle(.plain)
+            BackButton(action: onBack)
 
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 13))
@@ -164,21 +158,61 @@ struct FolderDetailView: View {
     // MARK: New reading button
 
     private var newReadingButton: some View {
-        Button { ReadingWindowManager.shared.openNew(in: folder.id) } label: {
+        BottomBarButton(icon: "plus", label: "New Reading") {
+            ReadingWindowManager.shared.openNew(in: folder.id)
+        }
+    }
+
+    private func close() { OverlayWindowController.shared.hide() }
+}
+
+// MARK: - Back button with circle + hover
+
+private struct BackButton: View {
+    let action: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "chevron.left")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(Theme.ink)
+                .frame(width: 22, height: 22)
+                .background(Theme.ink.opacity(isHovered ? 0.14 : 0.08))
+                .clipShape(Circle())
+                .animation(.easeOut(duration: 0.12), value: isHovered)
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
+    }
+}
+
+// MARK: - Shared bottom bar button (hover-aware)
+
+struct BottomBarButton: View {
+    let icon:   String
+    let label:  String
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
             HStack(spacing: 6) {
-                Image(systemName: "plus")
+                Image(systemName: icon)
                     .font(.system(size: 11, weight: .semibold))
-                Text("New Reading")
+                Text(label)
                     .font(.app(13, weight: .semibold))
             }
             .foregroundColor(Theme.ink)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 13)
+            .background(Theme.ink.opacity(isHovered ? 0.06 : 0))
+            .animation(.easeOut(duration: 0.12), value: isHovered)
         }
         .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
     }
-
-    private func close() { OverlayWindowController.shared.hide() }
 }
 
 // MARK: - Reading thumbnail card

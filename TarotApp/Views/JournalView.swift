@@ -164,23 +164,12 @@ struct FolderListView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 10)
             } else {
-                Button {
+                BottomBarButton(icon: "folder.badge.plus", label: "New Folder") {
                     isCreating = true
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                         createFieldFocused = true
                     }
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "folder.badge.plus")
-                            .font(.system(size: 11, weight: .semibold))
-                        Text("New Folder")
-                            .font(.app(13, weight: .semibold))
-                    }
-                    .foregroundColor(Theme.ink)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 13)
                 }
-                .buttonStyle(.plain)
             }
         }
     }
