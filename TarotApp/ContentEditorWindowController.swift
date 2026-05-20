@@ -138,7 +138,9 @@ class ContentEditorWindowController: NSWindowController {
     func show() {
         showAnimated(duration: 0.2)
         eventMonitor = addKeyMonitor { [weak self] event in
-            if event.keyCode == 1 && event.modifierFlags.contains(.command) {
+            let isCmdS   = event.keyCode == 1  && event.modifierFlags.contains(.command)
+            let isEscape = event.keyCode == 53
+            if isCmdS || isEscape {
                 self?.saveAndClose()
                 return nil
             }

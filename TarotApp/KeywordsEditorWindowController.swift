@@ -11,6 +11,7 @@ class KeywordsEditorWindowController: NSWindowController, NSWindowDelegate {
 
     private var fieldEditor: AppTextView?
     private weak var hosting: NSView?
+    private var eventMonitor: Any?
     private static let cursorColor = Theme.nsInk
 
     static let windowW: CGFloat = 360
@@ -82,6 +83,7 @@ class KeywordsEditorWindowController: NSWindowController, NSWindowDelegate {
     }
 
     func animateClose() {
+        if let m = eventMonitor { NSEvent.removeMonitor(m); eventMonitor = nil }
         state.isClosing = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
             self?.window?.close()
@@ -103,6 +105,11 @@ class KeywordsEditorWindowController: NSWindowController, NSWindowDelegate {
             ctx.duration = 0.2
             ctx.timingFunction = CAMediaTimingFunction(name: .easeOut)
             window?.animator().alphaValue = 1
+        }
+        eventMonitor = addKeyMonitor { [weak self] event in
+            guard event.keyCode == 53 else { return event }
+            self?.animateClose()
+            return nil
         }
     }
 }
