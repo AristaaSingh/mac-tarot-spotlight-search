@@ -7,11 +7,6 @@ class EditorState: ObservableObject {
     init(_ text: String) { self.text = text }
 }
 
-// Borderless window that can become key so the text view accepts input
-private class KeyableWindow: NSWindow {
-    override var canBecomeKey: Bool { true }
-}
-
 // MARK: - NSViewRepresentable wrapping AppTextView
 
 struct StyledTextEditor: NSViewRepresentable {
@@ -54,6 +49,7 @@ struct StyledTextEditor: NSViewRepresentable {
             .paragraphStyle: style
         ]
         textView.string = text
+        textView.applyAppSelectionStyle()
 
         let scroll = NSScrollView()
         scroll.drawsBackground = false
@@ -66,7 +62,10 @@ struct StyledTextEditor: NSViewRepresentable {
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let textView = scrollView.documentView as? AppTextView else { return }
-        if textView.string != text { textView.string = text }
+        if textView.string != text {
+            let full = NSRange(location: 0, length: (textView.string as NSString).length)
+            textView.textStorage?.replaceCharacters(in: full, with: text)
+        }
     }
 
     class Coordinator: NSObject, NSTextViewDelegate {
@@ -84,7 +83,7 @@ struct StyledTextEditor: NSViewRepresentable {
 class ContentEditorWindowController: NSWindowController {
 
     static let windowW: CGFloat = 1024
-    static let windowH: CGFloat = 500
+    static let windowH: CGFloat = 600
 
     private let state: EditorState
     private let onSave: (String) -> Void
@@ -100,12 +99,7 @@ class ContentEditorWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        win.isOpaque = false
-        win.backgroundColor = .clear
-        win.hasShadow = true
-        win.isMovableByWindowBackground = true
-        win.level = .floating
-        win.collectionBehavior = [.canJoinAllSpaces]
+        win.applyAppStyle()
 
         super.init(window: win)
 
@@ -142,16 +136,11 @@ class ContentEditorWindowController: NSWindowController {
     }
 
     func show() {
-        window?.alphaValue = 0
-        window?.orderFrontRegardless()
-        window?.makeKey()
-        NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.2
-            ctx.timingFunction = CAMediaTimingFunction(name: .easeOut)
-            window?.animator().alphaValue = 1
-        }
-        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            if event.keyCode == 1 && event.modifierFlags.contains(.command) {
+        showAnimated(duration: 0.2)
+        eventMonitor = addKeyMonitor { [weak self] event in
+            let isCmdS   = event.keyCode == 1  && event.modifierFlags.contains(.command)
+            let isEscape = event.keyCode == 53
+            if isCmdS || isEscape {
                 self?.saveAndClose()
                 return nil
             }
@@ -168,18 +157,18 @@ class ContentEditorWindowController: NSWindowController {
 
 private struct SaveButtonStyle: ButtonStyle {
     @State private var isHovered = false
-    private let base    = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.08)
-    private let hovered = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.14)
-    private let pressed = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.24)
-    private let ink     = Color(red: 0.278, green: 0, blue: 0.102)
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.app(13, weight: .bold))
-            .foregroundColor(ink)
+            .foregroundColor(Theme.ink)
             .padding(.horizontal, 18)
             .padding(.vertical, 6)
-            .background(configuration.isPressed ? pressed : (isHovered ? hovered : base))
+            .background(
+                configuration.isPressed ? Theme.ink.opacity(0.24) :
+                isHovered               ? Theme.ink.opacity(0.14) :
+                                          Theme.ink.opacity(0.08)
+            )
             .clipShape(Capsule())
             .animation(.easeOut(duration: 0.12), value: isHovered)
             .animation(.easeOut(duration: 0.08), value: configuration.isPressed)
@@ -198,17 +187,10 @@ private struct ContentEditorView: View {
     @ObservedObject var state: EditorState
     @State private var appeared = false
 
-    private let ink      = Color(red: 0.278, green: 0, blue: 0.102)
-    private let mid      = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.50)
-    private let faint    = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.30)
-    private let bg       = Color(red: 0.98, green: 0.96, blue: 0.94)
-    private let accentBg = Color(red: 0.278, green: 0, blue: 0.102, opacity: 0.08)
-
-    private let nsInk = NSColor(red: 0.278, green: 0, blue: 0.102, alpha: 1)
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            bg
+            Theme.bg
 
             VStack(alignment: .leading, spacing: 0) {
 
@@ -217,9 +199,9 @@ private struct ContentEditorView: View {
                     Button(action: onCancel) {
                         Image(systemName: "xmark")
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(faint)
+                            .foregroundColor(Theme.faint)
                             .frame(width: 20, height: 20)
-                            .background(accentBg)
+                            .background(Theme.ink.opacity(0.08))
                             .clipShape(Circle())
                     }
                     .buttonStyle(.plain)
@@ -228,10 +210,10 @@ private struct ContentEditorView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(cardName)
                             .font(.app(22, weight: .bold))
-                            .foregroundColor(ink)
+                            .foregroundColor(Theme.ink)
                         Text(section)
                             .font(.app(13))
-                            .foregroundColor(mid)
+                            .foregroundColor(Theme.mid)
                             .textCase(.uppercase)
                             .kerning(0.8)
                     }
@@ -242,9 +224,9 @@ private struct ContentEditorView: View {
                 // Editor
                 StyledTextEditor(
                     text: $state.text,
-                    nsFont: NSFont(name: "Didot", size: 15) ?? .systemFont(ofSize: 15),
-                    textColor: nsInk,
-                    cursorColor: nsInk,
+                    nsFont: .didot(15),
+                    textColor: Theme.nsInk,
+                    cursorColor: Theme.nsInk,
                     lineHeightMultiple: 1.4
                 )
                 .padding(.horizontal, 28)

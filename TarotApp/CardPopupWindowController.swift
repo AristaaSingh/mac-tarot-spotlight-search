@@ -32,7 +32,7 @@ class CardPopupWindowController: NSWindowController, NSWindowDelegate {
     static let windowWidth:  CGFloat = leftPanelW + rightPanelW         // 728
 
     init(card: TarotCard) {
-        let win = NSWindow(
+        let win = KeyableWindow(
             contentRect: NSRect(x: 0, y: 0,
                                 width:  Self.windowWidth,
                                 height: Self.windowHeight),
@@ -40,11 +40,7 @@ class CardPopupWindowController: NSWindowController, NSWindowDelegate {
             backing: .buffered,
             defer: false
         )
-        win.isOpaque = false
-        win.backgroundColor = .clear
-        win.hasShadow = true
-        win.isMovableByWindowBackground = true
-        win.collectionBehavior = [.canJoinAllSpaces]
+        win.applyAppStyle()
 
         super.init(window: win)
         win.delegate = self
@@ -67,16 +63,11 @@ class CardPopupWindowController: NSWindowController, NSWindowDelegate {
     required init?(coder: NSCoder) { fatalError() }
 
     func show() {
-        window?.alphaValue = 0
-        window?.orderFrontRegardless()
-        NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.28
-            ctx.timingFunction = CAMediaTimingFunction(name: .easeOut)
-            window?.animator().alphaValue = 1
-        }
+        showAnimated(duration: 0.28)
 
-        // Single monitor handles all escape logic for this card + its child editor
-        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+        // Single monitor handles all escape logic for this card + its child editor.
+        // addKeyMonitor guards against firing when this window is not key.
+        eventMonitor = addKeyMonitor { [weak self] event in
             guard event.keyCode == 53 else { return event }
             if let editor = self?.currentEditor, editor.window?.isVisible == true {
                 editor.saveAndClose()
@@ -92,14 +83,7 @@ class CardPopupWindowController: NSWindowController, NSWindowDelegate {
     }
 
     func fadeAndClose() {
-        guard let win = window else { return }
-        NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.18
-            ctx.timingFunction = CAMediaTimingFunction(name: .easeIn)
-            win.animator().alphaValue = 0
-        } completionHandler: {
-            win.close()
-        }
+        closeAnimated(duration: 0.18)
     }
 
     func windowWillClose(_ notification: Notification) {

@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 extension Font {
     // Didot for all app text. Bold/semibold → Didot-Bold, everything else → Didot.
@@ -13,5 +14,12 @@ extension Font {
 
     static func appItalic(_ size: CGFloat) -> Font {
         .custom("Didot-Italic", size: size)
+    }
+}
+
+extension NSFont {
+    /// Didot at the given point size, with a system-font fallback.
+    static func didot(_ size: CGFloat) -> NSFont {
+        NSFont(name: "Didot", size: size) ?? .systemFont(ofSize: size)
     }
 }
