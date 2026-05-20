@@ -31,6 +31,9 @@
 		A32A77B023E567ECF8B3D94C /* Font+App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC22BA2E50261EEFBD07A5A /* Font+App.swift */; };
 		A3BA099F652D81C94DE85D7B /* OverlayWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C06B60F82CCF46E5C95C3AD /* OverlayWindowController.swift */; };
 		A90569E2F90C4BAACA8AB986 /* ReadingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1867D12B236E69DB4E23DEB5 /* ReadingStore.swift */; };
+		C3A1F8240DB44E9EA712B653 /* Folder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7B92A1F3C5D4A80BC614D29 /* Folder.swift */; };
+		D48F2C71A9E34B5D8C307F16 /* FolderStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C583F06B2E47D9B358E420 /* FolderStore.swift */; };
+		F9E61B340A274C8DAF52C709 /* FolderDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4D70A82C1F04E6891A53C27 /* FolderDetailView.swift */; };
 		C97C28DFA88BD03DE0078EDD /* keyword-window-bg.gif in Resources */ = {isa = PBXBuildFile; fileRef = BBE10CC6F626AB0782DB7E03 /* keyword-window-bg.gif */; };
 		CAFB75F5FBFF4C9BD20BF8A3 /* AnimatedGIFView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90010721339F24A2D616A50 /* AnimatedGIFView.swift */; };
 		D51A45F193E70FABB08F060F /* CardData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D47B5E58D0C47D0C749D63 /* CardData.swift */; };
@@ -48,6 +51,9 @@
 		1867D12B236E69DB4E23DEB5 /* ReadingStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReadingStore.swift; sourceTree = "<group>"; };
 		8D492FB3D25044149750AB74 /* Theme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		F2A810CC5B934E7DAB127043 /* AppWindowManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppWindowManager.swift; sourceTree = "<group>"; };
+		E7B92A1F3C5D4A80BC614D29 /* Folder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Folder.swift; sourceTree = "<group>"; };
+		A1C583F06B2E47D9B358E420 /* FolderStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FolderStore.swift; sourceTree = "<group>"; };
+		B4D70A82C1F04E6891A53C27 /* FolderDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FolderDetailView.swift; sourceTree = "<group>"; };
 		1DC22BA2E50261EEFBD07A5A /* Font+App.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "Font+App.swift"; sourceTree = "<group>"; };
 		29E5FA0A830555929D953EDB /* TarotCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TarotCard.swift; sourceTree = "<group>"; };
 		3221B4DD44C2281BC645E73F /* ThumbnailWindowManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThumbnailWindowManager.swift; sourceTree = "<group>"; };
@@ -109,6 +115,7 @@
 				A90010721339F24A2D616A50 /* AnimatedGIFView.swift */,
 				B95833A7D362CC6138BCBAC7 /* FlowLayout.swift */,
 				0595B0D6622B679C6570E2CA /* JournalView.swift */,
+				B4D70A82C1F04E6891A53C27 /* FolderDetailView.swift */,
 				452003192FD7417BB1A3FA01 /* ReadingEditorView.swift */,
 				13BB69DD0DCE4EFA800B56B1 /* CalendarPicker.swift */,
 			);
@@ -154,6 +161,7 @@
 				D0B6A19C76503213452F5DFC /* KeywordsEditorWindowController.swift */,
 				9D041D87970957C69FA510AB /* AppTextView.swift */,
 				1867D12B236E69DB4E23DEB5 /* ReadingStore.swift */,
+				A1C583F06B2E47D9B358E420 /* FolderStore.swift */,
 				C8120E1BD1F10AF46E2DB444 /* OverlayMode.swift */,
 				78131ED331CF4E37AF6955AC /* ReadingWindowController.swift */,
 			);
@@ -166,6 +174,7 @@
 				29E5FA0A830555929D953EDB /* TarotCard.swift */,
 				68D47B5E58D0C47D0C749D63 /* CardData.swift */,
 				182D67C21835C5076B8EE713 /* ReadingEntry.swift */,
+				E7B92A1F3C5D4A80BC614D29 /* Folder.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -281,6 +290,9 @@
 				A90569E2F90C4BAACA8AB986 /* ReadingStore.swift in Sources */,
 				9E9686FACA5E0B367BA7C7FE /* OverlayMode.swift in Sources */,
 				35734417419354E45E454EF8 /* JournalView.swift in Sources */,
+				C3A1F8240DB44E9EA712B653 /* Folder.swift in Sources */,
+				D48F2C71A9E34B5D8C307F16 /* FolderStore.swift in Sources */,
+				F9E61B340A274C8DAF52C709 /* FolderDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

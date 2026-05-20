@@ -107,9 +107,10 @@ class ReadingWindowManager {
         ctrl.show()
     }
 
-    /// Open a blank entry for writing.
-    func openNew() {
-        let ctrl = ReadingWindowController(entry: ReadingEntry(), isNew: true)
+    /// Open a blank entry inside a specific folder.
+    func openNew(in folderID: String) {
+        let entry = ReadingEntry(folderID: folderID)
+        let ctrl = ReadingWindowController(entry: entry, isNew: true)
         controllers.append(ctrl)
         ctrl.show()
     }

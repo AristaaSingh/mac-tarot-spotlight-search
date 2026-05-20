@@ -38,6 +38,23 @@ class ReadingStore: ObservableObject {
                 return try? decoder.decode(ReadingEntry.self, from: data)
             }
             .sorted { $0.date > $1.date }
+        migrateOrphanedEntries()
+    }
+
+    /// Assign any entries that pre-date folders to a default "My Readings" folder.
+    private func migrateOrphanedEntries() {
+        let orphans = entries.filter { $0.folderID.isEmpty }
+        guard !orphans.isEmpty else { return }
+
+        let fs = FolderStore.shared
+        let defaultFolder = fs.folders.first(where: { $0.name == "My Readings" })
+                         ?? fs.create(name: "My Readings")
+
+        for entry in orphans {
+            var updated = entry
+            updated.folderID = defaultFolder.id
+            save(updated)
+        }
     }
 
     func save(_ entry: ReadingEntry) {
