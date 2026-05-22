@@ -90,9 +90,23 @@ class OverlayWindowController: NSWindowController {
         panel.makeKeyAndOrderFront(nil)
         if escapeMonitor == nil {
             escapeMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-                guard event.keyCode == 53, self?.window?.isVisible == true else { return event }
-                self?.hide()
-                return nil
+                guard self?.window?.isVisible == true else { return event }
+                switch event.keyCode {
+                case 53: // Escape
+                    // Only intercept when the overlay itself is key — if another window
+                    // (e.g. reading editor) is key, let its own monitor handle Escape.
+                    guard self?.window?.isKeyWindow == true else { return event }
+                    // If a text field inside the overlay has focus, pass through so it
+                    // can handle Escape itself (clear query, go back, etc.).
+                    if self?.window?.firstResponder is NSTextView { return event }
+                    self?.hide()
+                    return nil
+                case 48: // Tab → toggle mode (text fields consume Tab before it reaches here)
+                    OverlayMode.shared.toggle()
+                    return nil
+                default:
+                    return event
+                }
             }
         }
     }

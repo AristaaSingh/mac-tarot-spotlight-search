@@ -13,9 +13,10 @@ struct FolderDetailView: View {
     @State private var searchFocused   = false
 
     // Selection
-    @State private var isSelecting   = false
-    @State private var selectedIDs   = Set<String>()
+    @State private var isSelecting      = false
+    @State private var selectedIDs      = Set<String>()
     @State private var pickerAction: PickerAction? = nil
+    @State private var confirmingDelete = false
 
     private enum PickerAction: Equatable { case move, copy }
 
@@ -100,11 +101,7 @@ struct FolderDetailView: View {
     private var header: some View {
         HStack(spacing: 10) {
             if isSelecting {
-                // Cancel
-                Button("Cancel") { exitSelection() }
-                    .font(.app(13))
-                    .foregroundColor(Theme.ink)
-                    .buttonStyle(.plain)
+                TextHoverButton(label: "Cancel", action: exitSelection)
 
                 Spacer()
 
@@ -115,17 +112,15 @@ struct FolderDetailView: View {
 
                 Spacer()
 
-                // Select all / deselect all
-                Button(selectedIDs.count == folderEntries.count ? "Deselect All" : "Select All") {
+                TextHoverButton(
+                    label: selectedIDs.count == folderEntries.count ? "Deselect All" : "Select All"
+                ) {
                     if selectedIDs.count == folderEntries.count {
                         selectedIDs.removeAll()
                     } else {
                         selectedIDs = Set(folderEntries.map { $0.id })
                     }
                 }
-                .font(.app(13))
-                .foregroundColor(Theme.ink)
-                .buttonStyle(.plain)
 
             } else {
                 BackButton(action: onBack)
@@ -141,8 +136,7 @@ struct FolderDetailView: View {
                     textColor: Theme.nsInk,
                     cursorColor: Theme.nsInk,
                     isFocused: searchFocused,
-                    onEscape: { query.isEmpty ? onBack() : (query = "") },
-                    onTab: { OverlayMode.shared.toggle() }
+                    onEscape: { query.isEmpty ? onBack() : (query = "") }
                 )
 
                 if !query.isEmpty {
@@ -156,10 +150,7 @@ struct FolderDetailView: View {
 
                 // Select button (only when search is empty)
                 if query.isEmpty && !folderEntries.isEmpty {
-                    Button("Select") { isSelecting = true }
-                        .font(.app(13))
-                        .foregroundColor(Theme.mid)
-                        .buttonStyle(.plain)
+                    SelectButton { isSelecting = true }
                 }
             }
         }
@@ -225,20 +216,55 @@ struct FolderDetailView: View {
     private var bottomBar: some View {
         Group {
             if isSelecting {
-                HStack(spacing: 0) {
-                    BottomBarButton(
-                        icon:     "arrow.right.circle",
-                        label:    "Move to…",
-                        disabled: selectedIDs.isEmpty
-                    ) { pickerAction = .move }
+                if confirmingDelete {
+                    // Confirmation row
+                    HStack(spacing: 16) {
+                        let n = selectedIDs.count
+                        Text("Delete \(n) reading\(n == 1 ? "" : "s")?")
+                            .font(.app(13))
+                            .foregroundColor(Theme.ink)
+                        Spacer()
+                        Button("Cancel") {
+                            withAnimation(.easeOut(duration: 0.12)) { confirmingDelete = false }
+                        }
+                        .font(.app(13))
+                        .foregroundColor(Theme.mid)
+                        .buttonStyle(.plain)
+                        Button("Delete") { deleteSelected() }
+                            .font(.app(13, weight: .bold))
+                            .foregroundColor(.red.opacity(0.8))
+                            .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 13)
+                } else {
+                    // Action row
+                    HStack(spacing: 0) {
+                        BottomBarButton(
+                            icon:     "arrow.right.circle",
+                            label:    "Move to…",
+                            disabled: selectedIDs.isEmpty
+                        ) { pickerAction = .move }
 
-                    Theme.divider.frame(width: 1, height: 24)
+                        Theme.divider.frame(width: 1, height: 24)
 
-                    BottomBarButton(
-                        icon:     "doc.on.doc",
-                        label:    "Copy to…",
-                        disabled: selectedIDs.isEmpty
-                    ) { pickerAction = .copy }
+                        BottomBarButton(
+                            icon:     "doc.on.doc",
+                            label:    "Copy to…",
+                            disabled: selectedIDs.isEmpty
+                        ) { pickerAction = .copy }
+
+                        Theme.divider.frame(width: 1, height: 24)
+
+                        BottomBarButton(
+                            icon:     "trash",
+                            label:    "Delete",
+                            disabled: selectedIDs.isEmpty,
+                            tint:     selectedIDs.isEmpty ? Theme.ink : .red.opacity(0.75)
+                        ) {
+                            withAnimation(.easeOut(duration: 0.12)) { confirmingDelete = true }
+                        }
+                    }
                 }
             } else {
                 BottomBarButton(icon: "plus", label: "New Reading") {
@@ -322,9 +348,19 @@ struct FolderDetailView: View {
     }
 
     private func exitSelection() {
-        isSelecting    = false
+        isSelecting      = false
         selectedIDs.removeAll()
-        pickerAction   = nil
+        pickerAction     = nil
+        confirmingDelete = false
+    }
+
+    private func deleteSelected() {
+        store.delete(selectedIDs)
+        withAnimation(.spring(response: 0.3)) {
+            isSelecting      = false
+            selectedIDs.removeAll()
+            confirmingDelete = false
+        }
     }
 
     private func performAction(_ action: PickerAction, toFolder targetID: String) {
@@ -375,6 +411,55 @@ private struct FolderPickerRow: View {
     }
 }
 
+// MARK: - Select button (icon + label, mid tint)
+
+private struct SelectButton: View {
+    let action: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Image(systemName: "checklist")
+                    .font(.system(size: 11, weight: .semibold))
+                Text("Select")
+                    .font(.app(13))
+            }
+            .foregroundColor(Theme.mid)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Theme.ink.opacity(isHovered ? 0.08 : 0))
+            .clipShape(Capsule())
+            .animation(.easeOut(duration: 0.12), value: isHovered)
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
+    }
+}
+
+// MARK: - Plain text button with hover background
+
+private struct TextHoverButton: View {
+    let label:  String
+    let action: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Text(label)
+                .font(.app(13))
+                .foregroundColor(Theme.ink)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Theme.ink.opacity(isHovered ? 0.08 : 0))
+                .clipShape(Capsule())
+                .animation(.easeOut(duration: 0.12), value: isHovered)
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
+    }
+}
+
 // MARK: - Back button with circle + hover
 
 private struct BackButton: View {
@@ -402,6 +487,7 @@ struct BottomBarButton: View {
     let icon:     String
     let label:    String
     var disabled: Bool    = false
+    var tint:     Color   = Theme.ink
     let action:   () -> Void
 
     @State private var isHovered = false
@@ -414,7 +500,7 @@ struct BottomBarButton: View {
                 Text(label)
                     .font(.app(13, weight: .semibold))
             }
-            .foregroundColor(Theme.ink.opacity(disabled ? 0.3 : 1))
+            .foregroundColor(tint.opacity(disabled ? 0.3 : 1))
             .frame(maxWidth: .infinity)
             .padding(.vertical, 13)
             .background(Theme.ink.opacity(!disabled && isHovered ? 0.06 : 0))
