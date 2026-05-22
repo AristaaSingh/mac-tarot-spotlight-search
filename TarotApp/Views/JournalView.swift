@@ -1,40 +1,57 @@
 import SwiftUI
 
+// MARK: - Navigation container
+
 struct JournalView: View {
-    @StateObject private var store = ReadingStore.shared
-    @State private var query        = ""
-    @State private var appeared     = false
-    @State private var searchFocused = false
+    @State private var selectedFolder: Folder? = nil
+    @State private var appeared = false
+
+    var body: some View {
+        ZStack {
+            if let folder = selectedFolder {
+                FolderDetailView(folder: folder, onBack: {
+                    withAnimation(.easeInOut(duration: 0.22)) { selectedFolder = nil }
+                })
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing),
+                    removal:   .move(edge: .trailing)
+                ))
+            } else {
+                FolderListView(onSelect: { folder in
+                    withAnimation(.easeInOut(duration: 0.22)) { selectedFolder = folder }
+                })
+                .transition(.asymmetric(
+                    insertion: .move(edge: .leading),
+                    removal:   .move(edge: .leading)
+                ))
+            }
+        }
+        .frame(width: OverlayWindowController.journalW,
+               height: OverlayWindowController.journalH)
+        .opacity(appeared ? 1 : 0)
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.2)) { appeared = true }
+        }
+    }
+}
+
+// MARK: - Folder list
+
+struct FolderListView: View {
+    let onSelect: (Folder) -> Void
+
+    @StateObject private var folderStore  = FolderStore.shared
+    @StateObject private var readingStore = ReadingStore.shared
+
+    @State private var isCreating        = false
+    @State private var newFolderName     = ""
+    @State private var createFieldFocused = false
 
     private let columns = [GridItem(.adaptive(minimum: 140, maximum: 180), spacing: 12)]
 
-    private static let monthFmt: DateFormatter = {
-        let f = DateFormatter(); f.dateFormat = "MMMM yyyy"; return f
-    }()
-
-    /// Entries grouped by "Month YYYY", preserving chronological-descending order.
-    var groupedEntries: [(month: String, entries: [ReadingEntry])] {
-        var seen: [String: [ReadingEntry]] = [:]
-        var order: [String] = []
-        for entry in filtered {
-            let key = Self.monthFmt.string(from: entry.date)
-            if seen[key] == nil { order.append(key); seen[key] = [] }
-            seen[key]!.append(entry)
-        }
-        return order.map { (month: $0, entries: seen[$0]!) }
-    }
-
-    var filtered: [ReadingEntry] {
-        guard !query.isEmpty else { return store.entries }
-        let q = query.lowercased()
-        return store.entries.filter { e in
-            e.title.lowercased().contains(q) ||
-            e.body.lowercased().contains(q) ||
-            e.cardEntries.contains { ce in
-                ce.note.lowercased().contains(q) ||
-                (allCards.first { $0.id == ce.cardID }?.name.lowercased().contains(q) ?? false)
-            }
-        }
+    // Pre-compute entries per folder so thumbnails don't each filter the array
+    private var entriesByFolder: [String: [ReadingEntry]] {
+        Dictionary(grouping: readingStore.entries, by: \.folderID)
     }
 
     var body: some View {
@@ -42,12 +59,12 @@ struct JournalView: View {
             VStack(spacing: 0) {
                 header
                 Theme.divider.frame(height: 1)
-                entryGrid
+                folderGrid
                 Theme.divider.frame(height: 1)
-                newReadingButton
+                bottomBar
             }
 
-            // Close button
+            // Close overlay
             Button(action: close) {
                 Image(systemName: "xmark")
                     .font(.system(size: 10, weight: .bold))
@@ -63,57 +80,32 @@ struct JournalView: View {
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .frame(width: OverlayWindowController.journalW,
                height: OverlayWindowController.journalH)
-        .opacity(appeared ? 1 : 0)
-        .onAppear {
-            withAnimation(.easeOut(duration: 0.2)) { appeared = true }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { searchFocused = true }
-        }
-        .onExitCommand { close() }
     }
 
     // MARK: Header
 
     private var header: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 13))
-                .foregroundColor(Theme.faint)
-
-            ThemedTextField(
-                text: $query,
-                placeholder: "Search readings…",
-                nsFont: .didot(18),
-                textColor: Theme.nsInk,
-                cursorColor: Theme.nsInk,
-                isFocused: searchFocused,
-                onEscape: { close() },
-                onTab: { OverlayMode.shared.toggle() }
-            )
-
-            if !query.isEmpty {
-                Button { query = "" } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 13))
-                        .foregroundColor(Theme.faint.opacity(0.6))
-                }
-                .buttonStyle(.plain)
-            }
+        HStack {
+            Text("Readings")
+                .font(.app(20, weight: .bold))
+                .foregroundColor(Theme.ink)
+            Spacer()
         }
         .padding(.horizontal, 20)
         .padding(.top, 50)
         .padding(.bottom, 14)
     }
 
-    // MARK: Entry grid
+    // MARK: Folder grid
 
-    private var entryGrid: some View {
+    private var folderGrid: some View {
         Group {
-            if filtered.isEmpty {
+            if folderStore.folders.isEmpty && !isCreating {
                 VStack(spacing: 10) {
-                    Image(systemName: "book.closed")
+                    Image(systemName: "folder")
                         .font(.system(size: 28))
                         .foregroundColor(Theme.faint.opacity(0.5))
-                    Text(query.isEmpty ? "No readings yet" : "No matches")
+                    Text("No folders yet")
                         .font(.app(13))
                         .foregroundColor(Theme.faint)
                 }
@@ -121,23 +113,12 @@ struct JournalView: View {
             } else {
                 ScrollView(.vertical, showsIndicators: false) {
                     LazyVGrid(columns: columns, spacing: 12) {
-                        ForEach(groupedEntries, id: \.month) { group in
-                            Section {
-                                ForEach(group.entries) { entry in
-                                    ReadingThumbnail(entry: entry)
-                                        .onTapGesture {
-                                            ReadingWindowManager.shared.open(entry: entry)
-                                        }
-                                }
-                            } header: {
-                                Text(group.month.uppercased())
-                                    .font(.app(10, weight: .semibold))
-                                    .foregroundColor(Theme.faint)
-                                    .kerning(1.4)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.top, 6)
-                                    .padding(.bottom, 2)
-                            }
+                        ForEach(folderStore.folders) { folder in
+                            FolderThumbnail(
+                                folder:  folder,
+                                entries: entriesByFolder[folder.id] ?? []
+                            )
+                            .onTapGesture { onSelect(folder) }
                         }
                     }
                     .padding(16)
@@ -147,66 +128,114 @@ struct JournalView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    // MARK: New reading button
+    // MARK: Bottom bar
 
-    private var newReadingButton: some View {
-        Button { ReadingWindowManager.shared.openNew() } label: {
-            HStack(spacing: 6) {
-                Image(systemName: "plus")
-                    .font(.system(size: 11, weight: .semibold))
-                Text("New Reading")
-                    .font(.app(13, weight: .semibold))
+    private var bottomBar: some View {
+        Group {
+            if isCreating {
+                HStack(spacing: 10) {
+                    ThemedTextField(
+                        text: $newFolderName,
+                        placeholder: "Folder name…",
+                        nsFont: .didot(15),
+                        textColor: Theme.nsInk,
+                        cursorColor: Theme.nsInk,
+                        isFocused: createFieldFocused,
+                        onSubmit: { commitCreate() },
+                        onEscape: { cancelCreate() }
+                    )
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(Theme.ink.opacity(0.05))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                    Button("Create", action: commitCreate)
+                        .font(.app(13, weight: .semibold))
+                        .foregroundColor(Theme.ink)
+                        .buttonStyle(.plain)
+
+                    Button(action: cancelCreate) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(Theme.faint)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+            } else {
+                BottomBarButton(icon: "folder.badge.plus", label: "New Folder") {
+                    isCreating = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                        createFieldFocused = true
+                    }
+                }
             }
-            .foregroundColor(Theme.ink)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 13)
         }
-        .buttonStyle(.plain)
+    }
+
+    // MARK: Actions
+
+    private func commitCreate() {
+        let name = newFolderName.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { cancelCreate(); return }
+        let folder = FolderStore.shared.create(name: name)
+        newFolderName = ""
+        isCreating = false
+        createFieldFocused = false
+        onSelect(folder)   // navigate straight into the new folder
+    }
+
+    private func cancelCreate() {
+        newFolderName = ""
+        isCreating = false
+        createFieldFocused = false
     }
 
     private func close() { OverlayWindowController.shared.hide() }
 }
 
-// MARK: - Reading Thumbnail
+// MARK: - Folder thumbnail card
 
-private struct ReadingThumbnail: View {
-    let entry: ReadingEntry
+private struct FolderThumbnail: View {
+    let folder:  Folder
+    let entries: [ReadingEntry]
+
     @State private var isHovered = false
 
-    private static let dateFmt: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "MMM d, yyyy"
-        return f
-    }()
+    var count: Int { entries.count }
 
-    var cards: [TarotCard] {
-        entry.allCardIDs.prefix(3).compactMap { id in allCards.first { $0.id == id } }
+    // Show a card fan from the most recent entries in this folder
+    var previewCards: [TarotCard] {
+        entries
+            .flatMap { $0.allCardIDs }
+            .prefix(3)
+            .compactMap { id in allCards.first { $0.id == id } }
     }
 
     var body: some View {
         VStack(spacing: 0) {
 
-            // ── Card image area ──────────────────────────────────────────
+            // Preview area
             ZStack {
                 Theme.ink.opacity(0.05)
 
-                if cards.isEmpty {
-                    Image(systemName: "book.closed")
+                if previewCards.isEmpty {
+                    Image(systemName: "folder")
                         .font(.system(size: 22))
                         .foregroundColor(Theme.faint.opacity(0.5))
                 } else {
-                    // Fan of cards
-                    let angles: [Double] = [-10, 0, 10]
+                    let angles:  [Double]  = [-10, 0, 10]
                     let offsets: [CGFloat] = [-14, 0, 14]
                     ZStack {
-                        ForEach(Array(cards.enumerated()), id: \.offset) { i, card in
+                        ForEach(Array(previewCards.enumerated()), id: \.offset) { i, card in
                             let angle  = i < angles.count  ? angles[i]  : 0
                             let offset = i < offsets.count ? offsets[i] : 0
                             CardFace(card: card)
                                 .frame(width: 62, height: 93)
                                 .rotationEffect(.degrees(angle))
                                 .offset(x: offset * 0.6, y: abs(offset) * 0.05)
-                                .zIndex(i == 1 ? 2 : 1) // middle card on top
+                                .zIndex(i == 1 ? 2 : 1)
                         }
                     }
                 }
@@ -214,15 +243,15 @@ private struct ReadingThumbnail: View {
             .frame(height: 128)
             .clipShape(UnevenRoundedRectangle(topLeadingRadius: 14, topTrailingRadius: 14))
 
-            // ── Text area ────────────────────────────────────────────────
+            // Name + count
             VStack(alignment: .leading, spacing: 3) {
-                Text(entry.title.isEmpty ? "Untitled" : entry.title)
+                Text(folder.name)
                     .font(.app(12, weight: .semibold))
-                    .foregroundColor(entry.title.isEmpty ? Theme.faint : Theme.ink)
+                    .foregroundColor(Theme.ink)
                     .lineLimit(2)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                Text(Self.dateFmt.string(from: entry.date))
+                Text(count == 1 ? "1 reading" : "\(count) readings")
                     .font(.app(10))
                     .foregroundColor(Theme.faint)
             }
@@ -232,39 +261,16 @@ private struct ReadingThumbnail: View {
             .background(Theme.bg)
             .clipShape(UnevenRoundedRectangle(bottomLeadingRadius: 14, bottomTrailingRadius: 14))
         }
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Theme.bg)
-        )
+        .background(RoundedRectangle(cornerRadius: 14).fill(Theme.bg))
         .overlay(
             RoundedRectangle(cornerRadius: 14)
                 .stroke(Theme.ink.opacity(isHovered ? 0.18 : 0.07), lineWidth: 1)
         )
-        .shadow(color: .black.opacity(isHovered ? 0.12 : 0.04), radius: isHovered ? 10 : 4, y: 2)
+        .shadow(color: .black.opacity(isHovered ? 0.12 : 0.04),
+                radius: isHovered ? 10 : 4, y: 2)
         .scaleEffect(isHovered ? 1.025 : 1)
         .animation(.easeOut(duration: 0.15), value: isHovered)
         .onHover { isHovered = $0 }
         .contentShape(Rectangle())
-    }
-}
-
-// Single card face used in the fan
-private struct CardFace: View {
-    let card: TarotCard
-
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 7).fill(Theme.ink.opacity(0.08))
-            if let img = card.image {
-                Image(nsImage: img)
-                    .resizable()
-                    .scaledToFill()
-                    .clipShape(RoundedRectangle(cornerRadius: 7))
-            } else {
-                Text(card.suitSymbol)
-                    .font(.app(18))
-            }
-        }
-        .shadow(color: .black.opacity(0.15), radius: 4, x: 0, y: 2)
     }
 }

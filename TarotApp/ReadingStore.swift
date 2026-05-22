@@ -38,6 +38,23 @@ class ReadingStore: ObservableObject {
                 return try? decoder.decode(ReadingEntry.self, from: data)
             }
             .sorted { $0.date > $1.date }
+        migrateOrphanedEntries()
+    }
+
+    /// Assign any entries that pre-date folders to a default "My Readings" folder.
+    private func migrateOrphanedEntries() {
+        let orphans = entries.filter { $0.folderID.isEmpty }
+        guard !orphans.isEmpty else { return }
+
+        let fs = FolderStore.shared
+        let defaultFolder = fs.folders.first(where: { $0.name == "My Readings" })
+                         ?? fs.create(name: "My Readings")
+
+        for entry in orphans {
+            var updated = entry
+            updated.folderID = defaultFolder.id
+            save(updated)
+        }
     }
 
     func save(_ entry: ReadingEntry) {
@@ -56,5 +73,26 @@ class ReadingStore: ObservableObject {
         let fileURL = storageURL.appendingPathComponent("\(entry.id).json")
         try? FileManager.default.removeItem(at: fileURL)
         entries.removeAll { $0.id == entry.id }
+    }
+
+    /// Reassign a set of entries to a different folder.
+    func move(_ ids: Set<String>, toFolder folderID: String) {
+        for id in ids {
+            guard let idx = entries.firstIndex(where: { $0.id == id }) else { continue }
+            var entry = entries[idx]
+            entry.folderID = folderID
+            save(entry)
+        }
+    }
+
+    /// Duplicate a set of entries into a different folder (originals stay put).
+    func copy(_ ids: Set<String>, toFolder folderID: String) {
+        for id in ids {
+            guard let entry = entries.first(where: { $0.id == id }) else { continue }
+            var newEntry      = entry
+            newEntry.id       = UUID().uuidString
+            newEntry.folderID = folderID
+            save(newEntry)
+        }
     }
 }
