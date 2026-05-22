@@ -85,6 +85,13 @@ class ReadingStore: ObservableObject {
         }
     }
 
+    /// Delete a set of entries by ID.
+    func delete(_ ids: Set<String>) {
+        for id in ids {
+            if let entry = entries.first(where: { $0.id == id }) { delete(entry) }
+        }
+    }
+
     /// Duplicate a set of entries into a different folder (originals stay put).
     func copy(_ ids: Set<String>, toFolder folderID: String) {
         for id in ids {
