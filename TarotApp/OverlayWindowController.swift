@@ -20,6 +20,7 @@ class OverlayWindowController: NSWindowController {
 
     private var hostingView: NSHostingView<OverlayRootView>?
     private var modeCancellable: AnyCancellable?
+    private var escapeMonitor: Any?
 
     private init() {
         let panel = KeyablePanel(
@@ -87,9 +88,17 @@ class OverlayWindowController: NSWindowController {
         panel.alphaValue = 1
         NSApp.activate(ignoringOtherApps: true)
         panel.makeKeyAndOrderFront(nil)
+        if escapeMonitor == nil {
+            escapeMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+                guard event.keyCode == 53, self?.window?.isVisible == true else { return event }
+                self?.hide()
+                return nil
+            }
+        }
     }
 
     func hide() {
+        if let m = escapeMonitor { NSEvent.removeMonitor(m); escapeMonitor = nil }
         ThumbnailWindowManager.shared.clear()
         guard let panel = window else { return }
         NSAnimationContext.beginGrouping()
