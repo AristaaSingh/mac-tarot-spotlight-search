@@ -74,4 +74,25 @@ class ReadingStore: ObservableObject {
         try? FileManager.default.removeItem(at: fileURL)
         entries.removeAll { $0.id == entry.id }
     }
+
+    /// Reassign a set of entries to a different folder.
+    func move(_ ids: Set<String>, toFolder folderID: String) {
+        for id in ids {
+            guard let idx = entries.firstIndex(where: { $0.id == id }) else { continue }
+            var entry = entries[idx]
+            entry.folderID = folderID
+            save(entry)
+        }
+    }
+
+    /// Duplicate a set of entries into a different folder (originals stay put).
+    func copy(_ ids: Set<String>, toFolder folderID: String) {
+        for id in ids {
+            guard let entry = entries.first(where: { $0.id == id }) else { continue }
+            var newEntry      = entry
+            newEntry.id       = UUID().uuidString
+            newEntry.folderID = folderID
+            save(newEntry)
+        }
+    }
 }
