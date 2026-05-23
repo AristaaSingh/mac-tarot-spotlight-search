@@ -1,5 +1,23 @@
 import Foundation
 
+// MARK: - Shared JSON coding helpers
+
+extension JSONEncoder {
+    static let iso8601: JSONEncoder = {
+        let e = JSONEncoder()
+        e.dateEncodingStrategy = .iso8601
+        return e
+    }()
+}
+
+extension JSONDecoder {
+    static let iso8601: JSONDecoder = {
+        let d = JSONDecoder()
+        d.dateDecodingStrategy = .iso8601
+        return d
+    }()
+}
+
 struct CardEntry: Identifiable, Codable {
     var id:     String = UUID().uuidString
     var cardID: String? = nil

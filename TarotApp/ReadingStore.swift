@@ -13,17 +13,8 @@ class ReadingStore: ObservableObject {
         return dir
     }()
 
-    private let encoder: JSONEncoder = {
-        let e = JSONEncoder()
-        e.dateEncodingStrategy = .iso8601
-        return e
-    }()
-
-    private let decoder: JSONDecoder = {
-        let d = JSONDecoder()
-        d.dateDecodingStrategy = .iso8601
-        return d
-    }()
+    private let encoder = JSONEncoder.iso8601
+    private let decoder = JSONDecoder.iso8601
 
     private init() {
         load()
