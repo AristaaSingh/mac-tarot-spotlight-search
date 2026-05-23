@@ -3,8 +3,25 @@ import Foundation
 struct CardContent: Codable {
     var upright:          String
     var reversed:         String
-    var uprightKeywords:  [String]?
-    var reversedKeywords: [String]?
+    var uprightKeywords:  [String]
+    var reversedKeywords: [String]
+
+    init(upright: String = "", reversed: String = "",
+         uprightKeywords: [String] = [], reversedKeywords: [String] = []) {
+        self.upright          = upright
+        self.reversed         = reversed
+        self.uprightKeywords  = uprightKeywords
+        self.reversedKeywords = reversedKeywords
+    }
+
+    // Custom decode: old files may have null or missing keyword arrays — treat as [].
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        upright          = try c.decode(String.self, forKey: .upright)
+        reversed         = try c.decode(String.self, forKey: .reversed)
+        uprightKeywords  = (try? c.decodeIfPresent([String].self, forKey: .uprightKeywords))  ?? []
+        reversedKeywords = (try? c.decodeIfPresent([String].self, forKey: .reversedKeywords)) ?? []
+    }
 }
 
 class ContentStore {
@@ -24,7 +41,7 @@ class ContentStore {
         if let cached = cache[card.id] { return cached }
         let url = Self.fileURL(for: card)
         guard let text = try? String(contentsOf: url, encoding: .utf8) else {
-            return CardContent(upright: "", reversed: "", uprightKeywords: nil, reversedKeywords: nil)
+            return CardContent()
         }
         let result = parse(text)
         cache[card.id] = result
@@ -50,11 +67,11 @@ class ContentStore {
         cache[card.id] = content
         let url = Self.fileURL(for: card)
         var text = "## Upright\n\(content.upright)\n\n## Reversed\n\(content.reversed)\n"
-        if let kws = content.uprightKeywords {
-            text += "\n## Keywords Upright\n\(kws.joined(separator: "\n"))\n"
+        if !content.uprightKeywords.isEmpty {
+            text += "\n## Keywords Upright\n\(content.uprightKeywords.joined(separator: "\n"))\n"
         }
-        if let kws = content.reversedKeywords {
-            text += "\n## Keywords Reversed\n\(kws.joined(separator: "\n"))\n"
+        if !content.reversedKeywords.isEmpty {
+            text += "\n## Keywords Reversed\n\(content.reversedKeywords.joined(separator: "\n"))\n"
         }
         try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(),
                                                   withIntermediateDirectories: true)
@@ -65,31 +82,25 @@ class ContentStore {
 
     private func parse(_ text: String) -> CardContent {
         var upright = "", reversed = ""
-        var uprightKeywords:  [String]? = nil
-        var reversedKeywords: [String]? = nil
+        var uprightKeywords:  [String] = []
+        var reversedKeywords: [String] = []
         var current = ""
 
         for line in text.components(separatedBy: "\n") {
             switch line.trimmingCharacters(in: .whitespaces) {
-            case "## Upright":
-                current = "upright"
-            case "## Reversed":
-                current = "reversed"
-            case "## My Notes":
-                current = ""
-            case "## Keywords Upright", "## Keywords":
-                current = "kwUpright"
-                if uprightKeywords == nil { uprightKeywords = [] }
-            case "## Keywords Reversed":
-                current = "kwReversed"
-                if reversedKeywords == nil { reversedKeywords = [] }
+            case "## Upright":           current = "upright"
+            case "## Reversed":          current = "reversed"
+            case "## My Notes":          current = ""
+            case "## Keywords Upright",
+                 "## Keywords":          current = "kwUpright"
+            case "## Keywords Reversed": current = "kwReversed"
             default:
                 let trimmed = line.trimmingCharacters(in: .whitespaces)
                 switch current {
                 case "upright":    upright  += line + "\n"
                 case "reversed":   reversed += line + "\n"
-                case "kwUpright":  if !trimmed.isEmpty { uprightKeywords?.append(trimmed) }
-                case "kwReversed": if !trimmed.isEmpty { reversedKeywords?.append(trimmed) }
+                case "kwUpright":  if !trimmed.isEmpty { uprightKeywords.append(trimmed) }
+                case "kwReversed": if !trimmed.isEmpty { reversedKeywords.append(trimmed) }
                 default: break
                 }
             }
