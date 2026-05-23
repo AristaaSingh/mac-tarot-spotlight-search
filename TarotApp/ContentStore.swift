@@ -11,6 +11,8 @@ class ContentStore {
     static let shared = ContentStore()
     private init() {}
 
+    private var cache: [String: CardContent] = [:]
+
     private static let base: URL = {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
             .appendingPathComponent("TarotApp")
@@ -19,11 +21,14 @@ class ContentStore {
     // MARK: - Public
 
     func content(for card: TarotCard) -> CardContent {
+        if let cached = cache[card.id] { return cached }
         let url = Self.fileURL(for: card)
         guard let text = try? String(contentsOf: url, encoding: .utf8) else {
             return CardContent(upright: "", reversed: "", uprightKeywords: nil, reversedKeywords: nil)
         }
-        return parse(text)
+        let result = parse(text)
+        cache[card.id] = result
+        return result
     }
 
     // MARK: - File path
@@ -42,6 +47,7 @@ class ContentStore {
     // MARK: - Save
 
     func save(_ content: CardContent, for card: TarotCard) {
+        cache[card.id] = content
         let url = Self.fileURL(for: card)
         var text = "## Upright\n\(content.upright)\n\n## Reversed\n\(content.reversed)\n"
         if let kws = content.uprightKeywords {
