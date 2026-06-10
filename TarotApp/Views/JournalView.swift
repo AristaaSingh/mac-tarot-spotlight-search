@@ -43,6 +43,9 @@ struct FolderListView: View {
     @StateObject private var folderStore  = FolderStore.shared
     @StateObject private var readingStore = ReadingStore.shared
 
+    @State private var query              = ""
+    @State private var searchFocused      = false
+
     @State private var isCreating         = false
     @State private var newFolderName      = ""
     @State private var createFieldFocused = false
@@ -56,6 +59,20 @@ struct FolderListView: View {
 
     private var entriesByFolder: [String: [ReadingEntry]] {
         Dictionary(grouping: readingStore.entries, by: \.folderID)
+    }
+
+    // Search across all readings (only used when query is non-empty)
+    private var searchResults: [ReadingEntry] {
+        guard !query.isEmpty else { return [] }
+        let q = query.lowercased()
+        return readingStore.entries.filter { e in
+            e.title.lowercased().contains(q) ||
+            e.body.lowercased().contains(q)  ||
+            e.cardEntries.contains { ce in
+                ce.note.lowercased().contains(q) ||
+                (allCards.first { $0.id == ce.cardID }?.name.lowercased().contains(q) ?? false)
+            }
+        }
     }
 
     var body: some View {
@@ -86,12 +103,15 @@ struct FolderListView: View {
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .frame(width: OverlayWindowController.journalW,
                height: OverlayWindowController.journalH)
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { searchFocused = true }
+        }
     }
 
     // MARK: Header
 
     private var header: some View {
-        HStack {
+        HStack(spacing: 10) {
             if isSelecting {
                 TextHoverButton(label: "Cancel", action: exitSelection)
 
@@ -113,13 +133,30 @@ struct FolderListView: View {
                     }
                 }
             } else {
-                Text("Readings")
-                    .font(.app(20, weight: .bold))
-                    .foregroundColor(Theme.ink)
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 13))
+                    .foregroundColor(Theme.faint)
 
-                Spacer()
+                ThemedTextField(
+                    text: $query,
+                    placeholder: "Search all readings…",
+                    nsFont: .didot(18),
+                    textColor: Theme.nsInk,
+                    cursorColor: Theme.nsInk,
+                    isFocused: searchFocused,
+                    onEscape: { query.isEmpty ? OverlayWindowController.shared.hide() : (query = "") }
+                )
 
-                if !folderStore.folders.isEmpty {
+                if !query.isEmpty {
+                    Button { query = "" } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 13))
+                            .foregroundColor(Theme.faint.opacity(0.6))
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                if query.isEmpty && !folderStore.folders.isEmpty {
                     SelectButton { isSelecting = true }
                 }
             }
@@ -129,11 +166,34 @@ struct FolderListView: View {
         .padding(.bottom, 14)
     }
 
-    // MARK: Folder grid
+    // MARK: Folder grid / search results
 
     private var folderGrid: some View {
         Group {
-            if folderStore.folders.isEmpty && !isCreating {
+            if !query.isEmpty {
+                // Search results: flat reading grid across all folders
+                if searchResults.isEmpty {
+                    VStack(spacing: 10) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 28))
+                            .foregroundColor(Theme.faint.opacity(0.5))
+                        Text("No matches")
+                            .font(.app(13))
+                            .foregroundColor(Theme.faint)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    ScrollView(.vertical, showsIndicators: false) {
+                        LazyVGrid(columns: columns, spacing: 12) {
+                            ForEach(searchResults) { entry in
+                                ReadingThumbnail(entry: entry)
+                                    .onTapGesture { ReadingWindowManager.shared.open(entry: entry) }
+                            }
+                        }
+                        .padding(16)
+                    }
+                }
+            } else if folderStore.folders.isEmpty && !isCreating {
                 VStack(spacing: 10) {
                     Image(systemName: "folder")
                         .font(.system(size: 28))

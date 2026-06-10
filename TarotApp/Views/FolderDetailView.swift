@@ -70,17 +70,29 @@ struct FolderDetailView: View {
                 bottomBar
             }
 
-            // Close overlay button (hidden during selection)
+            // Back + close buttons (hidden during selection)
             if !isSelecting {
-                Button(action: close) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(Theme.faint)
-                        .frame(width: 22, height: 22)
-                        .background(Theme.subtle)
-                        .clipShape(Circle())
+                HStack(spacing: 6) {
+                    Button(action: onBack) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(Theme.faint)
+                            .frame(width: 22, height: 22)
+                            .background(Theme.subtle)
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+
+                    Button(action: close) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(Theme.faint)
+                            .frame(width: 22, height: 22)
+                            .background(Theme.subtle)
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
                 .padding(14)
             }
 
@@ -123,8 +135,6 @@ struct FolderDetailView: View {
                 }
 
             } else {
-                BackButton(action: onBack)
-
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 13))
                     .foregroundColor(Theme.faint)
