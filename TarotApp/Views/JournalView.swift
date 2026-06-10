@@ -43,13 +43,17 @@ struct FolderListView: View {
     @StateObject private var folderStore  = FolderStore.shared
     @StateObject private var readingStore = ReadingStore.shared
 
-    @State private var isCreating        = false
-    @State private var newFolderName     = ""
+    @State private var isCreating         = false
+    @State private var newFolderName      = ""
     @State private var createFieldFocused = false
+
+    // Selection
+    @State private var isSelecting        = false
+    @State private var selectedIDs        = Set<String>()
+    @State private var confirmingDelete   = false
 
     private let columns = [GridItem(.adaptive(minimum: 140, maximum: 180), spacing: 12)]
 
-    // Pre-compute entries per folder so thumbnails don't each filter the array
     private var entriesByFolder: [String: [ReadingEntry]] {
         Dictionary(grouping: readingStore.entries, by: \.folderID)
     }
@@ -64,17 +68,19 @@ struct FolderListView: View {
                 bottomBar
             }
 
-            // Close overlay
-            Button(action: close) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(Theme.faint)
-                    .frame(width: 22, height: 22)
-                    .background(Theme.subtle)
-                    .clipShape(Circle())
+            // Close overlay (hidden during selection)
+            if !isSelecting {
+                Button(action: close) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(Theme.faint)
+                        .frame(width: 22, height: 22)
+                        .background(Theme.subtle)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .padding(14)
             }
-            .buttonStyle(.plain)
-            .padding(14)
         }
         .background(Theme.bg)
         .clipShape(RoundedRectangle(cornerRadius: 24))
@@ -86,10 +92,37 @@ struct FolderListView: View {
 
     private var header: some View {
         HStack {
-            Text("Readings")
-                .font(.app(20, weight: .bold))
-                .foregroundColor(Theme.ink)
-            Spacer()
+            if isSelecting {
+                TextHoverButton(label: "Cancel", action: exitSelection)
+
+                Spacer()
+
+                Text(selectedIDs.isEmpty ? "Select folders" : "\(selectedIDs.count) selected")
+                    .font(.app(13, weight: .semibold))
+                    .foregroundColor(Theme.ink)
+
+                Spacer()
+
+                TextHoverButton(
+                    label: selectedIDs.count == folderStore.folders.count ? "Deselect All" : "Select All"
+                ) {
+                    if selectedIDs.count == folderStore.folders.count {
+                        selectedIDs.removeAll()
+                    } else {
+                        selectedIDs = Set(folderStore.folders.map { $0.id })
+                    }
+                }
+            } else {
+                Text("Readings")
+                    .font(.app(20, weight: .bold))
+                    .foregroundColor(Theme.ink)
+
+                Spacer()
+
+                if !folderStore.folders.isEmpty {
+                    SelectButton { isSelecting = true }
+                }
+            }
         }
         .padding(.horizontal, 20)
         .padding(.top, 50)
@@ -115,10 +148,18 @@ struct FolderListView: View {
                     LazyVGrid(columns: columns, spacing: 12) {
                         ForEach(folderStore.folders) { folder in
                             FolderThumbnail(
-                                folder:  folder,
-                                entries: entriesByFolder[folder.id] ?? []
+                                folder:      folder,
+                                entries:     entriesByFolder[folder.id] ?? [],
+                                isSelecting: isSelecting,
+                                isSelected:  selectedIDs.contains(folder.id)
                             )
-                            .onTapGesture { onSelect(folder) }
+                            .onTapGesture {
+                                if isSelecting {
+                                    toggleSelection(folder.id)
+                                } else {
+                                    onSelect(folder)
+                                }
+                            }
                         }
                     }
                     .padding(16)
@@ -132,7 +173,38 @@ struct FolderListView: View {
 
     private var bottomBar: some View {
         Group {
-            if isCreating {
+            if isSelecting {
+                if confirmingDelete {
+                    HStack(spacing: 16) {
+                        let n = selectedIDs.count
+                        Text("Delete \(n) folder\(n == 1 ? "" : "s") and all their readings?")
+                            .font(.app(13))
+                            .foregroundColor(Theme.ink)
+                        Spacer()
+                        Button("Cancel") {
+                            withAnimation(.easeOut(duration: 0.12)) { confirmingDelete = false }
+                        }
+                        .font(.app(13))
+                        .foregroundColor(Theme.mid)
+                        .buttonStyle(.plain)
+                        Button("Delete") { deleteSelected() }
+                            .font(.app(13, weight: .bold))
+                            .foregroundColor(.red.opacity(0.8))
+                            .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 13)
+                } else {
+                    BottomBarButton(
+                        icon:     "trash",
+                        label:    "Delete",
+                        disabled: selectedIDs.isEmpty,
+                        tint:     selectedIDs.isEmpty ? Theme.ink : .red.opacity(0.75)
+                    ) {
+                        withAnimation(.easeOut(duration: 0.12)) { confirmingDelete = true }
+                    }
+                }
+            } else if isCreating {
                 HStack(spacing: 10) {
                     ThemedTextField(
                         text: $newFolderName,
@@ -174,7 +246,27 @@ struct FolderListView: View {
         }
     }
 
-    // MARK: Actions
+    // MARK: Helpers
+
+    private func toggleSelection(_ id: String) {
+        if selectedIDs.contains(id) { selectedIDs.remove(id) } else { selectedIDs.insert(id) }
+    }
+
+    private func exitSelection() {
+        isSelecting      = false
+        selectedIDs.removeAll()
+        confirmingDelete = false
+    }
+
+    private func deleteSelected() {
+        readingStore.deleteAll(inFolders: selectedIDs)
+        selectedIDs.forEach { folderStore.delete(Folder(id: $0, name: "")) }
+        withAnimation(.spring(response: 0.3)) {
+            isSelecting      = false
+            selectedIDs.removeAll()
+            confirmingDelete = false
+        }
+    }
 
     private func commitCreate() {
         let name = newFolderName.trimmingCharacters(in: .whitespaces)
@@ -183,7 +275,7 @@ struct FolderListView: View {
         newFolderName = ""
         isCreating = false
         createFieldFocused = false
-        onSelect(folder)   // navigate straight into the new folder
+        onSelect(folder)
     }
 
     private func cancelCreate() {
@@ -198,14 +290,15 @@ struct FolderListView: View {
 // MARK: - Folder thumbnail card
 
 private struct FolderThumbnail: View {
-    let folder:  Folder
-    let entries: [ReadingEntry]
+    let folder:      Folder
+    let entries:     [ReadingEntry]
+    var isSelecting: Bool = false
+    var isSelected:  Bool = false
 
     @State private var isHovered = false
 
     var count: Int { entries.count }
 
-    // Show a card fan from the most recent entries in this folder
     var previewCards: [TarotCard] {
         entries
             .flatMap { $0.allCardIDs }
@@ -239,6 +332,32 @@ private struct FolderThumbnail: View {
                         }
                     }
                 }
+
+                // Selection checkbox overlay
+                if isSelecting {
+                    Color.black.opacity(isSelected ? 0.18 : 0)
+                    VStack {
+                        HStack {
+                            Spacer()
+                            ZStack {
+                                Circle()
+                                    .fill(isSelected ? Theme.ink : Color.white.opacity(0.85))
+                                    .frame(width: 22, height: 22)
+                                if isSelected {
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 11, weight: .bold))
+                                        .foregroundColor(.white)
+                                } else {
+                                    Circle()
+                                        .strokeBorder(Theme.ink.opacity(0.35), lineWidth: 1.5)
+                                        .frame(width: 22, height: 22)
+                                }
+                            }
+                            .padding(8)
+                        }
+                        Spacer()
+                    }
+                }
             }
             .frame(height: 128)
             .clipShape(UnevenRoundedRectangle(topLeadingRadius: 14, topTrailingRadius: 14))
@@ -264,12 +383,18 @@ private struct FolderThumbnail: View {
         .background(RoundedRectangle(cornerRadius: 14).fill(Theme.bg))
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(Theme.ink.opacity(isHovered ? 0.18 : 0.07), lineWidth: 1)
+                .stroke(
+                    isSelected    ? Theme.ink.opacity(0.55) :
+                    isHovered     ? Theme.ink.opacity(0.18) :
+                                    Theme.ink.opacity(0.07),
+                    lineWidth: isSelected ? 1.5 : 1
+                )
         )
-        .shadow(color: .black.opacity(isHovered ? 0.12 : 0.04),
-                radius: isHovered ? 10 : 4, y: 2)
-        .scaleEffect(isHovered ? 1.025 : 1)
+        .shadow(color: .black.opacity(isHovered && !isSelecting ? 0.12 : 0.04),
+                radius: isHovered && !isSelecting ? 10 : 4, y: 2)
+        .scaleEffect(isHovered && !isSelecting ? 1.025 : 1)
         .animation(.easeOut(duration: 0.15), value: isHovered)
+        .animation(.easeOut(duration: 0.12), value: isSelected)
         .onHover { isHovered = $0 }
         .contentShape(Rectangle())
     }

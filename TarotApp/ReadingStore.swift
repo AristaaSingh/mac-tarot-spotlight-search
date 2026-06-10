@@ -76,6 +76,12 @@ class ReadingStore: ObservableObject {
         }
     }
 
+    /// Delete all entries that belong to any of the given folder IDs.
+    func deleteAll(inFolders folderIDs: Set<String>) {
+        let toDelete = entries.filter { folderIDs.contains($0.folderID) }
+        toDelete.forEach { delete($0) }
+    }
+
     /// Delete a set of entries by ID.
     func delete(_ ids: Set<String>) {
         for id in ids {

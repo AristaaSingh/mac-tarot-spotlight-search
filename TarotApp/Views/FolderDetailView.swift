@@ -413,7 +413,7 @@ private struct FolderPickerRow: View {
 
 // MARK: - Select button (icon + label, mid tint)
 
-private struct SelectButton: View {
+struct SelectButton: View {
     let action: () -> Void
     @State private var isHovered = false
 
@@ -439,7 +439,7 @@ private struct SelectButton: View {
 
 // MARK: - Plain text button with hover background
 
-private struct TextHoverButton: View {
+struct TextHoverButton: View {
     let label:  String
     let action: () -> Void
     @State private var isHovered = false
