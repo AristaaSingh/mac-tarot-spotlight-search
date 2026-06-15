@@ -6,8 +6,8 @@ struct FolderDetailView: View {
     let folder:  Folder
     let onBack:  () -> Void
 
-    @StateObject private var store       = ReadingStore.shared
-    @StateObject private var folderStore = FolderStore.shared
+    @ObservedObject private var store       = ReadingStore.shared
+    @ObservedObject private var folderStore = FolderStore.shared
 
     @State private var query           = ""
     @State private var searchFocused   = false
@@ -40,7 +40,7 @@ struct FolderDetailView: View {
             e.body.lowercased().contains(q)  ||
             e.cardEntries.contains { ce in
                 ce.note.lowercased().contains(q) ||
-                (allCards.first { $0.id == ce.cardID }?.name.lowercased().contains(q) ?? false)
+                (ce.cardID.flatMap { cardByID[$0] }?.name.lowercased().contains(q) ?? false)
             }
         }
     }
@@ -99,18 +99,10 @@ struct FolderDetailView: View {
             // Folder picker bottom sheet
             folderPickerOverlay
         }
-        .background(
-            Image("roses")
-                .resizable()
-                .scaledToFill()
-                .blur(radius: 4)
-                .clipped()
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 24))
         .frame(width: OverlayWindowController.journalW,
                height: OverlayWindowController.journalH)
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { searchFocused = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { searchFocused = true }
         }
     }
 
@@ -544,7 +536,7 @@ struct ReadingThumbnail: View {
     }()
 
     var cards: [TarotCard] {
-        entry.allCardIDs.prefix(3).compactMap { id in allCards.first { $0.id == id } }
+        entry.allCardIDs.prefix(3).compactMap { id in cardByID[id] }
     }
 
     var body: some View {

@@ -26,6 +26,14 @@ struct JournalView: View {
                 ))
             }
         }
+        .background(
+            Image("roses")
+                .resizable()
+                .scaledToFill()
+                .blur(radius: 4)
+                .clipped()
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 24))
         .frame(width: OverlayWindowController.journalW,
                height: OverlayWindowController.journalH)
         .opacity(appeared ? 1 : 0)
@@ -40,8 +48,8 @@ struct JournalView: View {
 struct FolderListView: View {
     let onSelect: (Folder) -> Void
 
-    @StateObject private var folderStore  = FolderStore.shared
-    @StateObject private var readingStore = ReadingStore.shared
+    @ObservedObject private var folderStore  = FolderStore.shared
+    @ObservedObject private var readingStore = ReadingStore.shared
 
     @State private var query              = ""
     @State private var searchFocused      = false
@@ -70,7 +78,7 @@ struct FolderListView: View {
             e.body.lowercased().contains(q)  ||
             e.cardEntries.contains { ce in
                 ce.note.lowercased().contains(q) ||
-                (allCards.first { $0.id == ce.cardID }?.name.lowercased().contains(q) ?? false)
+                (ce.cardID.flatMap { cardByID[$0] }?.name.lowercased().contains(q) ?? false)
             }
         }
     }
@@ -99,18 +107,10 @@ struct FolderListView: View {
                 .padding(14)
             }
         }
-        .background(
-            Image("roses")
-                .resizable()
-                .scaledToFill()
-                .blur(radius: 4)
-                .clipped()
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 24))
         .frame(width: OverlayWindowController.journalW,
                height: OverlayWindowController.journalH)
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { searchFocused = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { searchFocused = true }
         }
     }
 
@@ -369,7 +369,7 @@ private struct FolderThumbnail: View {
         entries
             .flatMap { $0.allCardIDs }
             .prefix(3)
-            .compactMap { id in allCards.first { $0.id == id } }
+            .compactMap { id in cardByID[id] }
     }
 
     var body: some View {

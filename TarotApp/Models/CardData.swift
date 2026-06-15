@@ -2,6 +2,7 @@ import Foundation
 
 // All 78 tarot cards. Add a `url` per card to enable the Labyrinthos button.
 let allCards: [TarotCard] = majorArcana + wands + cups + swords + pentacles
+let cardByID: [String: TarotCard] = Dictionary(uniqueKeysWithValues: allCards.map { ($0.id, $0) })
 
 // MARK: - Major Arcana
 
