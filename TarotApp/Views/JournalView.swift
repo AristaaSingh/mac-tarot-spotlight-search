@@ -63,7 +63,7 @@ struct FolderListView: View {
     @State private var selectedIDs        = Set<String>()
     @State private var confirmingDelete   = false
 
-    private let columns = [GridItem(.adaptive(minimum: 140, maximum: 180), spacing: 12)]
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 3)
 
     private var entriesByFolder: [String: [ReadingEntry]] {
         Dictionary(grouping: readingStore.entries, by: \.folderID)
@@ -196,7 +196,7 @@ struct FolderListView: View {
                                     .onTapGesture { ReadingWindowManager.shared.open(entry: entry) }
                             }
                         }
-                        .padding(16)
+                        .padding(12)
                     }
                 }
             } else if folderStore.folders.isEmpty && !isCreating {
@@ -211,11 +211,12 @@ struct FolderListView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView(.vertical, showsIndicators: false) {
-                    LazyVGrid(columns: columns, spacing: 12) {
-                        ForEach(folderStore.folders) { folder in
+                    LazyVGrid(columns: columns, spacing: 10) {
+                        ForEach(Array(folderStore.folders.enumerated()), id: \.element.id) { index, folder in
                             FolderThumbnail(
                                 folder:      folder,
                                 entries:     entriesByFolder[folder.id] ?? [],
+                                iconIndex:   index % FolderThumbnail.icons.count,
                                 isSelecting: isSelecting,
                                 isSelected:  selectedIDs.contains(folder.id)
                             )
@@ -228,7 +229,7 @@ struct FolderListView: View {
                             }
                         }
                     }
-                    .padding(16)
+                    .padding(10)
                 }
             }
         }
@@ -358,108 +359,53 @@ struct FolderListView: View {
 private struct FolderThumbnail: View {
     let folder:      Folder
     let entries:     [ReadingEntry]
+    var iconIndex:   Int  = 0
     var isSelecting: Bool = false
     var isSelected:  Bool = false
 
     @State private var isHovered = false
 
+    static let icons = ["Lanterns", "Cherry", "Herons", "Waves", "Peaches", "Purple"]
+
     var count: Int { entries.count }
 
-    var previewCards: [TarotCard] {
-        entries
-            .flatMap { $0.allCardIDs }
-            .prefix(3)
-            .compactMap { id in cardByID[id] }
-    }
-
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 6) {
+            ZStack(alignment: .topTrailing) {
+                Image(Self.icons[iconIndex])
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 145, height: 145)
+                    .scaleEffect(isHovered && !isSelecting ? 1.06 : 1)
+                    .animation(.easeOut(duration: 0.15), value: isHovered)
 
-            // Preview area
-            ZStack {
-                Theme.ink.opacity(0.05)
-
-                if previewCards.isEmpty {
-                    Image(systemName: "folder")
-                        .font(.system(size: 22))
-                        .foregroundColor(Theme.faint.opacity(0.5))
-                } else {
-                    let angles:  [Double]  = [-10, 0, 10]
-                    let offsets: [CGFloat] = [-14, 0, 14]
-                    ZStack {
-                        ForEach(Array(previewCards.enumerated()), id: \.offset) { i, card in
-                            let angle  = i < angles.count  ? angles[i]  : 0
-                            let offset = i < offsets.count ? offsets[i] : 0
-                            CardFace(card: card)
-                                .frame(width: 62, height: 93)
-                                .rotationEffect(.degrees(angle))
-                                .offset(x: offset * 0.6, y: abs(offset) * 0.05)
-                                .zIndex(i == 1 ? 2 : 1)
-                        }
-                    }
-                }
-
-                // Selection checkbox overlay
                 if isSelecting {
-                    Color.black.opacity(isSelected ? 0.18 : 0)
-                    VStack {
-                        HStack {
-                            Spacer()
-                            ZStack {
-                                Circle()
-                                    .fill(isSelected ? Theme.ink : Color.white.opacity(0.85))
-                                    .frame(width: 22, height: 22)
-                                if isSelected {
-                                    Image(systemName: "checkmark")
-                                        .font(.system(size: 11, weight: .bold))
-                                        .foregroundColor(.white)
-                                } else {
-                                    Circle()
-                                        .strokeBorder(Theme.ink.opacity(0.35), lineWidth: 1.5)
-                                        .frame(width: 22, height: 22)
-                                }
-                            }
-                            .padding(8)
+                    ZStack {
+                        Circle()
+                            .fill(isSelected ? Theme.ink : Color.white.opacity(0.85))
+                            .frame(width: 20, height: 20)
+                        if isSelected {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.white)
+                        } else {
+                            Circle()
+                                .strokeBorder(Theme.ink.opacity(0.4), lineWidth: 1.5)
+                                .frame(width: 20, height: 20)
                         }
-                        Spacer()
                     }
+                    .offset(x: 4, y: -4)
                 }
             }
-            .frame(height: 128)
-            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 14, topTrailingRadius: 14))
 
-            // Name + count
-            VStack(alignment: .leading, spacing: 3) {
-                Text(folder.name)
-                    .font(.app(12, weight: .semibold))
-                    .foregroundColor(Theme.ink)
-                    .lineLimit(2)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                Text(count == 1 ? "1 reading" : "\(count) readings")
-                    .font(.app(10))
-                    .foregroundColor(Theme.faint)
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 9)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Theme.bg)
-            .clipShape(UnevenRoundedRectangle(bottomLeadingRadius: 14, bottomTrailingRadius: 14))
+            Text(folder.name)
+                .font(.app(12, weight: .semibold))
+                .foregroundColor(Theme.ink)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
         }
-        .background(RoundedRectangle(cornerRadius: 14).fill(Theme.bg))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(
-                    isSelected    ? Theme.ink.opacity(0.55) :
-                    isHovered     ? Theme.ink.opacity(0.18) :
-                                    Theme.ink.opacity(0.07),
-                    lineWidth: isSelected ? 1.5 : 1
-                )
-        )
-        .shadow(color: .black.opacity(isHovered && !isSelecting ? 0.12 : 0.04),
-                radius: isHovered && !isSelecting ? 10 : 4, y: 2)
-        .scaleEffect(isHovered && !isSelecting ? 1.025 : 1)
-        .animation(.easeOut(duration: 0.15), value: isHovered)
+        .padding(.vertical, 4)
+        .scaleEffect(isSelecting && isSelected ? 0.95 : 1)
         .animation(.easeOut(duration: 0.12), value: isSelected)
         .onHover { isHovered = $0 }
         .contentShape(Rectangle())
