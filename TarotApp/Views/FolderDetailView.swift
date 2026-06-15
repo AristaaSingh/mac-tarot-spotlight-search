@@ -99,7 +99,13 @@ struct FolderDetailView: View {
             // Folder picker bottom sheet
             folderPickerOverlay
         }
-        .background(Theme.bg)
+        .background(
+            Image("roses")
+                .resizable()
+                .scaledToFill()
+                .blur(radius: 4)
+                .clipped()
+        )
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .frame(width: OverlayWindowController.journalW,
                height: OverlayWindowController.journalH)
