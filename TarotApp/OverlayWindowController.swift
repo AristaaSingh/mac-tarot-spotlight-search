@@ -34,8 +34,8 @@ class OverlayWindowController: NSWindowController {
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = true
-        panel.level = .floating
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        panel.level = .normal
+        panel.collectionBehavior = [.moveToActiveSpace]
         panel.isMovableByWindowBackground = true
 
         super.init(window: panel)

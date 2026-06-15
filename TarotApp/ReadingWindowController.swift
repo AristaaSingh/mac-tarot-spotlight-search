@@ -61,8 +61,8 @@ class CardPickerThumbnailManager {
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = true
-        panel.level = NSWindow.Level(rawValue: NSWindow.Level.floating.rawValue + 1)
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        panel.level = .normal
+        panel.collectionBehavior = []
         panel.isMovable = false
 
         let view = PickerThumbnailView(card: card, delay: delay) { [weak self] in
@@ -140,7 +140,7 @@ class ReadingWindowController: NSWindowController, NSWindowDelegate {
             backing: .buffered,
             defer: false
         )
-        win.applyAppStyle(collectionBehavior: [.canJoinAllSpaces, .fullScreenAuxiliary])
+        win.applyAppStyle()
 
         super.init(window: win)
         win.delegate = self

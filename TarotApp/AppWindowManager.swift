@@ -14,15 +14,15 @@ class KeyableWindow: NSWindow {
 
 extension NSWindow {
     /// Applies the standard app window appearance: transparent background, shadow,
-    /// movable by background, floating level, and the given collection behavior.
+    /// movable by background, and the given collection behavior.
     func applyAppStyle(
-        collectionBehavior: NSWindow.CollectionBehavior = [.canJoinAllSpaces]
+        collectionBehavior: NSWindow.CollectionBehavior = []
     ) {
         isOpaque = false
         backgroundColor = .clear
         hasShadow = true
         isMovableByWindowBackground = true
-        level = .floating
+        level = .normal
         self.collectionBehavior = collectionBehavior
     }
 }
