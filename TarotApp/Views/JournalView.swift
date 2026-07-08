@@ -26,13 +26,7 @@ struct JournalView: View {
                 ))
             }
         }
-        .background(
-            Image("roses")
-                .resizable()
-                .scaledToFill()
-                .blur(radius: 4)
-                .clipped()
-        )
+        .background(Theme.bg)
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .frame(width: OverlayWindowController.journalW,
                height: OverlayWindowController.journalH)
@@ -409,5 +403,9 @@ private struct FolderThumbnail: View {
         .animation(.easeOut(duration: 0.12), value: isSelected)
         .onHover { isHovered = $0 }
         .contentShape(Rectangle())
+        .background(RightClickable { pt in
+            guard !isSelecting else { return }
+            ContextMenuPanel.show(at: pt, content: FolderContextMenuContent(folder: folder))
+        })
     }
 }

@@ -42,6 +42,7 @@
 		03C17B0932814E649C253AF1 /* ReadingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78131ED331CF4E37AF6955AC /* ReadingWindowController.swift */; };
 		875FCF47C20442AFA9A5B360 /* CalendarPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13BB69DD0DCE4EFA800B56B1 /* CalendarPicker.swift */; };
 		DCF5229E83D145139EE18D6D /* ReadingEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452003192FD7417BB1A3FA01 /* ReadingEditorView.swift */; };
+		AA11BB22CC33DD44EE55FF02 /* ContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF01 /* ContextMenu.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -82,6 +83,7 @@
 		78131ED331CF4E37AF6955AC /* ReadingWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReadingWindowController.swift; sourceTree = "<group>"; };
 		452003192FD7417BB1A3FA01 /* ReadingEditorView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReadingEditorView.swift; sourceTree = "<group>"; };
 		13BB69DD0DCE4EFA800B56B1 /* CalendarPicker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarPicker.swift; sourceTree = "<group>"; };
+		AA11BB22CC33DD44EE55FF01 /* ContextMenu.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContextMenu.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,6 +120,7 @@
 				B4D70A82C1F04E6891A53C27 /* FolderDetailView.swift */,
 				452003192FD7417BB1A3FA01 /* ReadingEditorView.swift */,
 				13BB69DD0DCE4EFA800B56B1 /* CalendarPicker.swift */,
+				AA11BB22CC33DD44EE55FF01 /* ContextMenu.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -286,6 +289,7 @@
 				03C17B0932814E649C253AF1 /* ReadingWindowController.swift in Sources */,
 				DCF5229E83D145139EE18D6D /* ReadingEditorView.swift in Sources */,
 				875FCF47C20442AFA9A5B360 /* CalendarPicker.swift in Sources */,
+				AA11BB22CC33DD44EE55FF02 /* ContextMenu.swift in Sources */,
 				1505DFE384C738AB5E4729A4 /* ReadingEntry.swift in Sources */,
 				A90569E2F90C4BAACA8AB986 /* ReadingStore.swift in Sources */,
 				9E9686FACA5E0B367BA7C7FE /* OverlayMode.swift in Sources */,
