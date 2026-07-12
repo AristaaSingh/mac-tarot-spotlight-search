@@ -115,6 +115,11 @@ struct CardDetailPopupView: View {
         .animation(.easeInOut(duration: 0.35), value: isReversed)
         .onAppear { content = ContentStore.shared.content(for: card) }
         .onExitCommand { onClose() }
+        .background(
+            Button("") { isReversed.toggle() }
+                .keyboardShortcut("r", modifiers: [])
+                .hidden()
+        )
         .scaleEffect(appeared ? 1 : 0.92)
         .opacity(appeared ? 1 : 0)
         .onAppear {
