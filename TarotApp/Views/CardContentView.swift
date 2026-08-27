@@ -70,23 +70,38 @@ struct CardDetailPopupView: View {
     let onClose: () -> Void
     let onEditorOpened: (ContentEditorWindowController) -> Void
     let onKeywordsEditorOpened: (KeywordsEditorWindowController) -> Void
+    var hideBackground: Bool        = false
+    var backgroundBlur: CGFloat     = 0
+    var backgroundCornerRadius: CGFloat = 0
+    var closeInset: CGFloat         = 14
+    var windowW: CGFloat            = CardPopupWindowController.windowWidth
+    var windowH: CGFloat            = CardPopupWindowController.windowHeight
+    var leftW: CGFloat              = CardPopupWindowController.leftPanelW
+    var rightW: CGFloat             = CardPopupWindowController.rightPanelW
+    var cardW: CGFloat              = CardPopupWindowController.cardDisplayW
+    var cardH: CGFloat              = CardPopupWindowController.cardDisplayH
+    var fontBoost: CGFloat          = 0
 
     @State private var isReversed = false
     @State private var appeared   = false
     @State private var content    = CardContent()
     @State private var editorWindow: ContentEditorWindowController?
 
-    private func p<T>(_ upright: T, _ reversed: T) -> T { isReversed ? reversed : upright }
+    private func p<T>(_ upright: T, _ reversed: T) -> T { (isReversed || hideBackground) ? reversed : upright }
+    private func fs(_ base: CGFloat) -> CGFloat { base + fontBoost }
 
     var body: some View {
         ZStack {
-            Image(isReversed ? "content-window-bg-dark" : "content-window-bg")
-                .resizable()
-                .scaledToFill()
-                .frame(width: CardPopupWindowController.windowWidth,
-                       height: CardPopupWindowController.windowHeight)
-                .clipped()
-            p(Palette.uprightOverlay, Palette.reversedOverlay)
+            if !hideBackground {
+                Image(isReversed ? "content-window-bg-dark" : "content-window-bg")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: windowW, height: windowH)
+                    .clipped()
+                    .blur(radius: backgroundBlur, opaque: backgroundBlur > 0)
+                    .clipShape(RoundedRectangle(cornerRadius: backgroundCornerRadius))
+                p(Palette.uprightOverlay, Palette.reversedOverlay)
+            }
 
             HStack(spacing: 0) {
                 contentPanel
@@ -106,7 +121,7 @@ struct CardDetailPopupView: View {
                             .clipShape(Circle())
                     }
                     .buttonStyle(.plain)
-                    .padding(14)
+                    .padding(closeInset)
                     Spacer()
                 }
                 Spacer()
@@ -141,10 +156,10 @@ struct CardDetailPopupView: View {
                         VStack(alignment: .leading, spacing: 6) {
                             HStack(alignment: .firstTextBaseline, spacing: 8) {
                                 Text(card.name)
-                                    .font(.app(24, weight: .bold))
+                                    .font(.app(fs(24), weight: .bold))
                                     .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
                                 Text(card.displayNumber)
-                                    .font(.app(14))
+                                    .font(.app(fs(14)))
                                     .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
                             }
                             HStack(spacing: 6) {
@@ -191,7 +206,7 @@ struct CardDetailPopupView: View {
                         FlowLayout(spacing: 6) {
                             ForEach(effectiveKeywords, id: \.self) { kw in
                                 Text(kw)
-                                    .font(.app(12))
+                                    .font(.app(fs(12)))
                                     .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
                                     .padding(.horizontal, 10)
                                     .padding(.vertical, 4)
@@ -219,14 +234,14 @@ struct CardDetailPopupView: View {
             }
 
         }
-        .frame(width: CardPopupWindowController.leftPanelW)
+        .frame(width: leftW)
     }
 
     // MARK: - Right: card image
 
     private var imagePanel: some View {
-        let cw = CardPopupWindowController.cardDisplayW
-        let ch = CardPopupWindowController.cardDisplayH
+        let cw = cardW
+        let ch = cardH
 
         return ZStack {
             Group {
@@ -256,8 +271,7 @@ struct CardDetailPopupView: View {
             .onTapGesture { isReversed.toggle() }
             .help(isReversed ? "Tap to restore upright" : "Tap to reverse")
         }
-        .frame(width: CardPopupWindowController.rightPanelW,
-               height: CardPopupWindowController.windowHeight)
+        .frame(width: rightW, height: windowH)
     }
 
     // MARK: - Helpers
@@ -327,12 +341,12 @@ struct CardDetailPopupView: View {
             }
             if text.isEmpty && onEdit != nil {
                 Text("Nothing written yet — click the pencil to add your interpretation.")
-                    .font(.appItalic(13))
+                    .font(.appItalic(fs(13)))
                     .foregroundColor(p(Palette.uprightFaint, Palette.reversedFaint))
                     .lineSpacing(4)
             } else {
                 Text(text)
-                    .font(.app(14))
+                    .font(.app(fs(14)))
                     .foregroundColor(p(Palette.uprightInk, Palette.reversedInk))
                     .lineSpacing(5)
                     .fixedSize(horizontal: false, vertical: true)
@@ -350,7 +364,7 @@ struct CardDetailPopupView: View {
 
     private func pill(_ text: String, highlighted: Bool = false) -> some View {
         Text(text)
-            .font(.app(10, weight: .bold))
+            .font(.app(fs(10), weight: .bold))
             .foregroundColor(highlighted ? p(Palette.uprightInk, Palette.reversedInk) : p(Palette.uprightMid, Palette.reversedMid))
             .padding(.horizontal, 8)
             .padding(.vertical, 3)

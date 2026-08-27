@@ -5,6 +5,7 @@ import SwiftUI
 struct JournalView: View {
     @State private var selectedFolder: Folder? = nil
     @State private var appeared = false
+    @Environment(\.journalIsFullscreen) private var isFullscreen
 
     var body: some View {
         ZStack {
@@ -27,9 +28,11 @@ struct JournalView: View {
             }
         }
         .background(Theme.bg)
-        .clipShape(RoundedRectangle(cornerRadius: 24))
-        .frame(width: OverlayWindowController.journalW,
-               height: OverlayWindowController.journalH)
+        .clipShape(RoundedRectangle(cornerRadius: isFullscreen ? 0 : 24))
+        .frame(
+            width:  isFullscreen ? nil : OverlayWindowController.journalW,
+            height: isFullscreen ? nil : OverlayWindowController.journalH
+        )
         .opacity(appeared ? 1 : 0)
         .onAppear {
             withAnimation(.easeOut(duration: 0.2)) { appeared = true }
@@ -44,6 +47,7 @@ struct FolderListView: View {
 
     @ObservedObject private var folderStore  = FolderStore.shared
     @ObservedObject private var readingStore = ReadingStore.shared
+    @Environment(\.journalIsFullscreen) private var isFullscreen
 
     @State private var query              = ""
     @State private var searchFocused      = false
@@ -87,8 +91,8 @@ struct FolderListView: View {
                 bottomBar
             }
 
-            // Close overlay (hidden during selection)
-            if !isSelecting {
+            // Close overlay (hidden during selection and in fullscreen, which has its own back button)
+            if !isSelecting && !isFullscreen {
                 Button(action: close) {
                     Image(systemName: "xmark")
                         .font(.system(size: 10, weight: .bold))
@@ -101,8 +105,10 @@ struct FolderListView: View {
                 .padding(14)
             }
         }
-        .frame(width: OverlayWindowController.journalW,
-               height: OverlayWindowController.journalH)
+        .frame(
+            width:  isFullscreen ? nil : OverlayWindowController.journalW,
+            height: isFullscreen ? nil : OverlayWindowController.journalH
+        )
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { searchFocused = true }
         }
@@ -345,7 +351,10 @@ struct FolderListView: View {
         createFieldFocused = false
     }
 
-    private func close() { OverlayWindowController.shared.hide() }
+    private func close() {
+        if isFullscreen { FullscreenWindowController.shared.navigate(to: .search) }
+        else            { OverlayWindowController.shared.hide() }
+    }
 }
 
 // MARK: - Folder thumbnail card

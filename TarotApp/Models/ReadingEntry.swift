@@ -19,9 +19,25 @@ extension JSONDecoder {
 }
 
 struct CardEntry: Identifiable, Codable {
-    var id:     String = UUID().uuidString
-    var cardID: String? = nil
-    var note:   String = ""
+    var id:           String  = UUID().uuidString
+    var cardID:       String? = nil
+    var note:         String  = ""
+    var trailingText: String  = ""
+
+    init(id: String = UUID().uuidString, cardID: String? = nil,
+         note: String = "", trailingText: String = "") {
+        self.id = id; self.cardID = cardID
+        self.note = note; self.trailingText = trailingText
+    }
+
+    // Custom decode so old entries without trailingText load cleanly.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id           = try c.decode(String.self, forKey: .id)
+        cardID       = try? c.decodeIfPresent(String.self, forKey: .cardID) ?? nil
+        note         = (try? c.decode(String.self, forKey: .note)) ?? ""
+        trailingText = (try? c.decodeIfPresent(String.self, forKey: .trailingText)) ?? ""
+    }
 }
 
 struct ReadingEntry: Identifiable, Codable {

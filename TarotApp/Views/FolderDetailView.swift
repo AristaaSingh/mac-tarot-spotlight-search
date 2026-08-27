@@ -8,6 +8,7 @@ struct FolderDetailView: View {
 
     @ObservedObject private var store       = ReadingStore.shared
     @ObservedObject private var folderStore = FolderStore.shared
+    @Environment(\.journalIsFullscreen) private var isFullscreen
 
     @State private var query           = ""
     @State private var searchFocused   = false
@@ -99,8 +100,10 @@ struct FolderDetailView: View {
             // Folder picker bottom sheet
             folderPickerOverlay
         }
-        .frame(width: OverlayWindowController.journalW,
-               height: OverlayWindowController.journalH)
+        .frame(
+            width:  isFullscreen ? nil : OverlayWindowController.journalW,
+            height: isFullscreen ? nil : OverlayWindowController.journalH
+        )
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { searchFocused = true }
         }
@@ -385,7 +388,10 @@ struct FolderDetailView: View {
         }
     }
 
-    private func close() { OverlayWindowController.shared.hide() }
+    private func close() {
+        if isFullscreen { FullscreenWindowController.shared.navigate(to: .search) }
+        else            { OverlayWindowController.shared.hide() }
+    }
 }
 
 // MARK: - Folder picker row

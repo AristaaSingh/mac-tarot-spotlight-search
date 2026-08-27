@@ -6,11 +6,11 @@ import SwiftUI
 // Shared NSTextView subclass used as both a direct editor and field editor.
 // Draws a 1px cursor and respects insertionPointColor for per-window theming.
 class AppTextView: NSTextView {
+    var autoFocus: Bool = true
 
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
-        // Only grab focus when used as a direct editor; field editors are managed by AppKit.
-        if !isFieldEditor { window?.makeFirstResponder(self) }
+        if !isFieldEditor && autoFocus { window?.makeFirstResponder(self) }
     }
 
     override func drawInsertionPoint(in rect: NSRect, color: NSColor, turnedOn flag: Bool) {
@@ -127,13 +127,15 @@ struct GrowingTextEditor: NSViewRepresentable {
     @Binding var text: String
     @Binding var height: CGFloat
     var minHeight:     CGFloat  = 24
-    var exclusionRect: CGRect   = .zero   // text wraps around this rect (e.g. a card image)
+    var exclusionRect: CGRect   = .zero
+    var autoFocus:     Bool     = true
     var nsFont:        NSFont   = .systemFont(ofSize: 14)
     var textColor:     NSColor  = .labelColor
     var cursorColor:   NSColor  = .textColor
 
     func makeNSView(context: Context) -> AppTextView {
         let tv = AppTextView()
+        tv.autoFocus = autoFocus
         tv.isFieldEditor = false
         tv.font = nsFont
         tv.textColor = textColor
@@ -158,6 +160,16 @@ struct GrowingTextEditor: NSViewRepresentable {
         tv.applyAppSelectionStyle()
         tv.delegate = context.coordinator
         tv.string = text
+
+        // The view's real frame is set by AppKit *after* makeNSView returns,
+        // so the initial exclusion-path layout uses a zero-width container and
+        // text overlaps the card image. Defer an invalidation to the next
+        // run-loop tick when the frame is already known.
+        DispatchQueue.main.async { [weak tv] in
+            guard let tv, let lm = tv.layoutManager, let ts = tv.textStorage else { return }
+            lm.invalidateLayout(forCharacterRange: NSRange(0..<ts.length), actualCharacterRange: nil)
+            self.recalc(tv)
+        }
         return tv
     }
 

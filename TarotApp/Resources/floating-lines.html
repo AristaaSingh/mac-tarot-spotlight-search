@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  * { margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+  canvas { display: block; width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<script>
+// ── Configuration ────────────────────────────────────────────────────────────
+const GRADIENT        = ["#f99ebb", "#6641a5", "#ffffff"];
+const ANIM_SPEED      = 1;
+const INTERACTIVE     = true;
+const BEND_RADIUS     = 8;
+const BEND_STRENGTH   = -2;
+const MOUSE_DAMP      = 0.05;
+const PARALLAX        = true;
+const PARALLAX_STR    = 0.2;
+const ENABLED_WAVES   = ['top', 'middle', 'bottom'];
+const LINE_COUNT      = [6];       // per wave, or single number for all
+const LINE_DIST       = [5];       // per wave, or single number for all
+const TOP_WAVE    = { x: 10.0, y:  0.5, rotate: -0.4 };
+const MID_WAVE    = { x:  5.0, y:  0.0, rotate:  0.2 };
+const BOT_WAVE    = { x:  2.0, y: -0.7, rotate:  0.4 };
+const MAX_STOPS       = 8;
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function hexToRGB(hex) {
+  let v = hex.trim().replace('#', '');
+  if (v.length === 3) v = v[0]+v[0]+v[1]+v[1]+v[2]+v[2];
+  return [parseInt(v.slice(0,2),16)/255, parseInt(v.slice(2,4),16)/255, parseInt(v.slice(4,6),16)/255];
+}
+
+function getCount(wave) {
+  if (!ENABLED_WAVES.includes(wave)) return 0;
+  const i = ENABLED_WAVES.indexOf(wave);
+  return Array.isArray(LINE_COUNT) ? (LINE_COUNT[i] ?? 6) : LINE_COUNT;
+}
+
+function getDist(wave) {
+  if (!ENABLED_WAVES.includes(wave)) return 0.01;
+  const i = ENABLED_WAVES.indexOf(wave);
+  return (Array.isArray(LINE_DIST) ? (LINE_DIST[i] ?? 5) : LINE_DIST) * 0.01;
+}
+
+// ── Shaders ──────────────────────────────────────────────────────────────────
+const VS = `#version 300 es
+in vec2 aPos;
+void main() { gl_Position = vec4(aPos, 0.0, 1.0); }
+`;
+
+// WebGL 2 / GLSL ES 3.0 — allows dynamic uniform array indexing and loop bounds.
+const FS = `#version 300 es
+precision highp float;
+
+uniform float iTime;
+uniform vec3  iResolution;
+uniform float animationSpeed;
+
+uniform bool  enableTop;
+uniform bool  enableMiddle;
+uniform bool  enableBottom;
+
+uniform int   topLineCount;
+uniform int   middleLineCount;
+uniform int   bottomLineCount;
+
+uniform float topLineDistance;
+uniform float middleLineDistance;
+uniform float bottomLineDistance;
+
+uniform vec3  topWavePosition;
+uniform vec3  middleWavePosition;
+uniform vec3  bottomWavePosition;
+
+uniform vec2  iMouse;
+uniform bool  interactive;
+uniform float bendRadius;
+uniform float bendStrength;
+uniform float bendInfluence;
+
+uniform bool  parallax;
+uniform float parallaxStrength;
+uniform vec2  parallaxOffset;
+
+uniform vec3  lineGradient[8];
+uniform int   lineGradientCount;
+
+out vec4 fragOut;
+
+const vec3 BLACK = vec3(0.0);
+const vec3 PINK  = vec3(233.0, 71.0, 245.0) / 255.0;
+const vec3 BLUE  = vec3(47.0,  75.0, 162.0) / 255.0;
+
+mat2 rotate(float r) {
+  return mat2(cos(r), sin(r), -sin(r), cos(r));
+}
+
+vec3 background_color(vec2 uv) {
+  vec3 col = vec3(0.0);
+  float y = sin(uv.x - 0.2) * 0.3 - 0.1;
+  float m = uv.y - y;
+  col += mix(BLUE, BLACK, smoothstep(0.0, 1.0, abs(m)));
+  col += mix(PINK, BLACK, smoothstep(0.0, 1.0, abs(m - 0.8)));
+  return col * 0.5;
+}
+
+vec3 getLineColor(float t, vec3 baseColor) {
+  if (lineGradientCount <= 0) return baseColor;
+  if (lineGradientCount == 1) return lineGradient[0] * 0.5;
+  float ct = clamp(t, 0.0, 0.9999);
+  float sc = ct * float(lineGradientCount - 1);
+  int idx  = int(floor(sc));
+  float f  = fract(sc);
+  int idx2 = int(min(float(idx + 1), float(lineGradientCount - 1)));
+  return mix(lineGradient[idx], lineGradient[idx2], f) * 0.5;
+}
+
+float wave(vec2 uv, float offset, vec2 screenUv, vec2 mouseUv, bool shouldBend) {
+  float time = iTime * animationSpeed;
+  float amp  = sin(offset + time * 0.2) * 0.3;
+  float y    = sin(uv.x + offset + time * 0.1) * amp;
+  if (shouldBend) {
+    vec2  d          = screenUv - mouseUv;
+    float influence  = exp(-dot(d, d) * bendRadius);
+    y += (mouseUv.y - screenUv.y) * influence * bendStrength * bendInfluence;
+  }
+  float m = uv.y - y;
+  return 0.0175 / max(abs(m) + 0.01, 1e-3) + 0.01;
+}
+
+void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+  vec2 baseUv = (2.0 * fragCoord - iResolution.xy) / iResolution.y;
+  baseUv.y *= -1.0;
+  if (parallax) baseUv += parallaxOffset;
+
+  vec3 col = vec3(0.0);
+  vec3 b   = lineGradientCount > 0 ? vec3(0.0) : background_color(baseUv);
+
+  vec2 mouseUv = vec2(0.0);
+  if (interactive) {
+    mouseUv  = (2.0 * iMouse - iResolution.xy) / iResolution.y;
+    mouseUv.y *= -1.0;
+  }
+
+  if (enableBottom) {
+    for (int i = 0; i < 20; ++i) {
+      if (i >= bottomLineCount) break;
+      float fi = float(i);
+      float t  = fi / max(float(bottomLineCount - 1), 1.0);
+      float angle = bottomWavePosition.z * log(length(baseUv) + 1.0);
+      vec2 ruv    = baseUv * rotate(angle);
+      col += getLineColor(t, b) * wave(
+        ruv + vec2(bottomLineDistance * fi + bottomWavePosition.x, bottomWavePosition.y),
+        1.5 + 0.2 * fi, baseUv, mouseUv, interactive
+      ) * 0.2;
+    }
+  }
+
+  if (enableMiddle) {
+    for (int i = 0; i < 20; ++i) {
+      if (i >= middleLineCount) break;
+      float fi = float(i);
+      float t  = fi / max(float(middleLineCount - 1), 1.0);
+      float angle = middleWavePosition.z * log(length(baseUv) + 1.0);
+      vec2 ruv    = baseUv * rotate(angle);
+      col += getLineColor(t, b) * wave(
+        ruv + vec2(middleLineDistance * fi + middleWavePosition.x, middleWavePosition.y),
+        2.0 + 0.15 * fi, baseUv, mouseUv, interactive
+      );
+    }
+  }
+
+  if (enableTop) {
+    for (int i = 0; i < 20; ++i) {
+      if (i >= topLineCount) break;
+      float fi = float(i);
+      float t  = fi / max(float(topLineCount - 1), 1.0);
+      float angle = topWavePosition.z * log(length(baseUv) + 1.0);
+      vec2 ruv    = baseUv * rotate(angle);
+      ruv.x *= -1.0;
+      col += getLineColor(t, b) * wave(
+        ruv + vec2(topLineDistance * fi + topWavePosition.x, topWavePosition.y),
+        1.0 + 0.2 * fi, baseUv, mouseUv, interactive
+      ) * 0.1;
+    }
+  }
+
+  fragColor = vec4(col, 1.0);
+}
+
+void main() {
+  vec4 c = vec4(0.0);
+  mainImage(c, gl_FragCoord.xy);
+  fragOut = c;
+}
+`;
+
+// ── WebGL init ───────────────────────────────────────────────────────────────
+const canvas = document.createElement('canvas');
+document.body.appendChild(canvas);
+
+const gl = canvas.getContext('webgl2');
+
+function compileShader(src, type) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  return s;
+}
+
+const prog = gl.createProgram();
+gl.attachShader(prog, compileShader(VS, gl.VERTEX_SHADER));
+gl.attachShader(prog, compileShader(FS, gl.FRAGMENT_SHADER));
+gl.linkProgram(prog);
+gl.useProgram(prog);
+
+// Full-screen quad
+const buf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+const posLoc = gl.getAttribLocation(prog, 'aPos');
+gl.enableVertexAttribArray(posLoc);
+gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+// ── Uniform locations ────────────────────────────────────────────────────────
+const U = {};
+[
+  'iTime','iResolution','animationSpeed',
+  'enableTop','enableMiddle','enableBottom',
+  'topLineCount','middleLineCount','bottomLineCount',
+  'topLineDistance','middleLineDistance','bottomLineDistance',
+  'topWavePosition','middleWavePosition','bottomWavePosition',
+  'iMouse','interactive','bendRadius','bendStrength','bendInfluence',
+  'parallax','parallaxStrength','parallaxOffset',
+  'lineGradient','lineGradientCount'
+].forEach(n => { U[n] = gl.getUniformLocation(prog, n); });
+
+// ── Static uniforms ──────────────────────────────────────────────────────────
+gl.uniform1f(U.animationSpeed,    ANIM_SPEED);
+gl.uniform1i(U.enableTop,         ENABLED_WAVES.includes('top')    ? 1 : 0);
+gl.uniform1i(U.enableMiddle,      ENABLED_WAVES.includes('middle') ? 1 : 0);
+gl.uniform1i(U.enableBottom,      ENABLED_WAVES.includes('bottom') ? 1 : 0);
+gl.uniform1i(U.topLineCount,      getCount('top'));
+gl.uniform1i(U.middleLineCount,   getCount('middle'));
+gl.uniform1i(U.bottomLineCount,   getCount('bottom'));
+gl.uniform1f(U.topLineDistance,   getDist('top'));
+gl.uniform1f(U.middleLineDistance,getDist('middle'));
+gl.uniform1f(U.bottomLineDistance,getDist('bottom'));
+gl.uniform3f(U.topWavePosition,   TOP_WAVE.x, TOP_WAVE.y, TOP_WAVE.rotate);
+gl.uniform3f(U.middleWavePosition,MID_WAVE.x, MID_WAVE.y, MID_WAVE.rotate);
+gl.uniform3f(U.bottomWavePosition,BOT_WAVE.x, BOT_WAVE.y, BOT_WAVE.rotate);
+gl.uniform1i(U.interactive,       INTERACTIVE ? 1 : 0);
+gl.uniform1f(U.bendRadius,        BEND_RADIUS);
+gl.uniform1f(U.bendStrength,      BEND_STRENGTH);
+gl.uniform1i(U.parallax,          PARALLAX ? 1 : 0);
+gl.uniform1f(U.parallaxStrength,  PARALLAX_STR);
+
+// Gradient stops
+const stops   = GRADIENT.slice(0, MAX_STOPS);
+const gradArr = new Float32Array(MAX_STOPS * 3).fill(1);
+stops.forEach((hex, i) => {
+  const [r,g,b] = hexToRGB(hex);
+  gradArr[i*3] = r; gradArr[i*3+1] = g; gradArr[i*3+2] = b;
+});
+gl.uniform3fv(U.lineGradient,   gradArr);
+gl.uniform1i (U.lineGradientCount, stops.length);
+
+// ── Resize ───────────────────────────────────────────────────────────────────
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width  = Math.floor(window.innerWidth  * dpr);
+  canvas.height = Math.floor(window.innerHeight * dpr);
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  gl.uniform3f(U.iResolution, canvas.width, canvas.height, 1);
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ── Mouse / parallax state ────────────────────────────────────────────────────
+let mouseX = -1000, mouseY = -1000;
+let curMouseX = -1000, curMouseY = -1000;
+let targetInfl = 0, curInfl = 0;
+let targetPX = 0, targetPY = 0, curPX = 0, curPY = 0;
+
+if (INTERACTIVE) {
+  window.addEventListener('pointermove', e => {
+    const r   = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    mouseX = (e.clientX - r.left)          * dpr;
+    mouseY = (r.height - (e.clientY - r.top)) * dpr;
+    targetInfl = 1.0;
+    if (PARALLAX) {
+      targetPX = ((e.clientX - r.left) / r.width  - 0.5) * PARALLAX_STR;
+      targetPY = -((e.clientY - r.top) / r.height - 0.5) * PARALLAX_STR;
+    }
+  });
+  window.addEventListener('pointerleave', () => { targetInfl = 0; });
+}
+
+// ── Render loop ───────────────────────────────────────────────────────────────
+let startTime = null;
+function render(ts) {
+  if (!startTime) startTime = ts;
+  gl.uniform1f(U.iTime, (ts - startTime) / 1000);
+
+  if (INTERACTIVE) {
+    curMouseX += (mouseX    - curMouseX) * MOUSE_DAMP;
+    curMouseY += (mouseY    - curMouseY) * MOUSE_DAMP;
+    curInfl   += (targetInfl - curInfl)  * MOUSE_DAMP;
+    gl.uniform2f(U.iMouse,      curMouseX, curMouseY);
+    gl.uniform1f(U.bendInfluence, curInfl);
+  }
+
+  if (PARALLAX) {
+    curPX += (targetPX - curPX) * MOUSE_DAMP;
+    curPY += (targetPY - curPY) * MOUSE_DAMP;
+    gl.uniform2f(U.parallaxOffset, curPX, curPY);
+  }
+
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  requestAnimationFrame(render);
+}
+requestAnimationFrame(render);
+</script>
+</body>
+</html>

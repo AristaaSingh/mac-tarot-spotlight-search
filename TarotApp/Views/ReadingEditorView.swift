@@ -48,6 +48,7 @@ struct ReadingEditorView: View {
 
     @State private var draft: ReadingEntry
     @State private var bodyHeight: CGFloat = 44
+    @State private var trailingHeights: [String: CGFloat] = [:]
     @State private var pickingForID: String? = nil
     @State private var cardPickerQuery = ""
     @State private var showDatePicker = false
@@ -173,7 +174,7 @@ struct ReadingEditorView: View {
                                         }
                                     }
                                 ),
-                                        onPick:   { pickingForID = ce.id },
+                                onPick:   { pickingForID = ce.id },
                                 onRemove: {
                                     guard let idx = draft.cardEntries.firstIndex(where: { $0.id == ce.id }) else { return }
                                     let removed = draft.cardEntries[idx]
@@ -181,7 +182,30 @@ struct ReadingEditorView: View {
                                     draft.cardEntries.remove(at: idx)
                                 }
                             )
-                            .padding(.bottom, 12)
+                            .padding(.bottom, 20)
+
+                            // Invisible text continuation after this card section
+                            GrowingTextEditor(
+                                text: Binding(
+                                    get: { draft.cardEntries.first { $0.id == ce.id }?.trailingText ?? "" },
+                                    set: { v in
+                                        if let idx = draft.cardEntries.firstIndex(where: { $0.id == ce.id }) {
+                                            draft.cardEntries[idx].trailingText = v
+                                        }
+                                    }
+                                ),
+                                height: Binding(
+                                    get: { trailingHeights[ce.id] ?? 28 },
+                                    set: { trailingHeights[ce.id] = $0 }
+                                ),
+                                minHeight: 28,
+                                autoFocus: false,
+                                nsFont: .didot(14),
+                                textColor: Theme.nsInk,
+                                cursorColor: Theme.nsInk
+                            )
+                            .frame(height: trailingHeights[ce.id] ?? 28)
+                            .padding(.bottom, 8)
                         }
 
                         Spacer(minLength: 60)

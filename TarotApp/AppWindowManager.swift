@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 
 // MARK: - Shared KeyableWindow
 
@@ -53,6 +54,18 @@ extension NSWindowController {
             win.close()
             completion?()
         }
+    }
+}
+
+// MARK: - Fullscreen environment
+
+private struct JournalIsFullscreenKey: EnvironmentKey {
+    static let defaultValue = false
+}
+extension EnvironmentValues {
+    var journalIsFullscreen: Bool {
+        get { self[JournalIsFullscreenKey.self] }
+        set { self[JournalIsFullscreenKey.self] = newValue }
     }
 }
 

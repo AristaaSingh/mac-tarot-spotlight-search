@@ -43,6 +43,9 @@
 		875FCF47C20442AFA9A5B360 /* CalendarPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13BB69DD0DCE4EFA800B56B1 /* CalendarPicker.swift */; };
 		DCF5229E83D145139EE18D6D /* ReadingEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452003192FD7417BB1A3FA01 /* ReadingEditorView.swift */; };
 		AA11BB22CC33DD44EE55FF02 /* ContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF01 /* ContextMenu.swift */; };
+		CC22DD33EE44FF5500AA1102 /* FullscreenSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC22DD33EE44FF5500AA1101 /* FullscreenSearchView.swift */; };
+		CC22DD33EE44FF5500AA1104 /* FullscreenWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC22DD33EE44FF5500AA1103 /* FullscreenWindowController.swift */; };
+		CC22DD33EE44FF5500AA1106 /* floating-lines.html in Resources */ = {isa = PBXBuildFile; fileRef = CC22DD33EE44FF5500AA1105 /* floating-lines.html */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -84,6 +87,9 @@
 		452003192FD7417BB1A3FA01 /* ReadingEditorView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReadingEditorView.swift; sourceTree = "<group>"; };
 		13BB69DD0DCE4EFA800B56B1 /* CalendarPicker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarPicker.swift; sourceTree = "<group>"; };
 		AA11BB22CC33DD44EE55FF01 /* ContextMenu.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContextMenu.swift; sourceTree = "<group>"; };
+		CC22DD33EE44FF5500AA1101 /* FullscreenSearchView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FullscreenSearchView.swift; sourceTree = "<group>"; };
+		CC22DD33EE44FF5500AA1103 /* FullscreenWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FullscreenWindowController.swift; sourceTree = "<group>"; };
+		CC22DD33EE44FF5500AA1105 /* floating-lines.html */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.html; path = "floating-lines.html"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -121,6 +127,7 @@
 				452003192FD7417BB1A3FA01 /* ReadingEditorView.swift */,
 				13BB69DD0DCE4EFA800B56B1 /* CalendarPicker.swift */,
 				AA11BB22CC33DD44EE55FF01 /* ContextMenu.swift */,
+				CC22DD33EE44FF5500AA1101 /* FullscreenSearchView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -167,6 +174,7 @@
 				A1C583F06B2E47D9B358E420 /* FolderStore.swift */,
 				C8120E1BD1F10AF46E2DB444 /* OverlayMode.swift */,
 				78131ED331CF4E37AF6955AC /* ReadingWindowController.swift */,
+				CC22DD33EE44FF5500AA1103 /* FullscreenWindowController.swift */,
 			);
 			path = TarotApp;
 			sourceTree = "<group>";
@@ -195,6 +203,7 @@
 			children = (
 				8649834877860963BEEFA942 /* dreamy-banner.gif */,
 				BBE10CC6F626AB0782DB7E03 /* keyword-window-bg.gif */,
+				CC22DD33EE44FF5500AA1105 /* floating-lines.html */,
 			);
 			name = Resources;
 			path = Resources;
@@ -257,6 +266,7 @@
 				57118D9F83B701D47C04327A /* Card-Images in Resources */,
 				495E5DDA839B7AAD291CD81E /* dreamy-banner.gif in Resources */,
 				C97C28DFA88BD03DE0078EDD /* keyword-window-bg.gif in Resources */,
+				CC22DD33EE44FF5500AA1106 /* floating-lines.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -290,6 +300,8 @@
 				DCF5229E83D145139EE18D6D /* ReadingEditorView.swift in Sources */,
 				875FCF47C20442AFA9A5B360 /* CalendarPicker.swift in Sources */,
 				AA11BB22CC33DD44EE55FF02 /* ContextMenu.swift in Sources */,
+				CC22DD33EE44FF5500AA1102 /* FullscreenSearchView.swift in Sources */,
+				CC22DD33EE44FF5500AA1104 /* FullscreenWindowController.swift in Sources */,
 				1505DFE384C738AB5E4729A4 /* ReadingEntry.swift in Sources */,
 				A90569E2F90C4BAACA8AB986 /* ReadingStore.swift in Sources */,
 				9E9686FACA5E0B367BA7C7FE /* OverlayMode.swift in Sources */,

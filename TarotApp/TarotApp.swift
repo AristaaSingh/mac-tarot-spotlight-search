@@ -18,6 +18,11 @@ struct TarotApp: App {
                         OverlayWindowController.shared.showMode(.journal)
                     }
                     .keyboardShortcut("2", modifiers: .command)
+
+                    Button("Immersive Search") {
+                        FullscreenWindowController.shared.toggle()
+                    }
+                    .keyboardShortcut("3", modifiers: .command)
                 }
             }
     }
