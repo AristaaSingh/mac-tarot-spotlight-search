@@ -5,17 +5,70 @@ extension Notification.Name {
     static let fullscreenWillShow = Notification.Name("fullscreenWillShow")
 }
 
-enum FullscreenScreen {
-    case search
-    case journal
-    case card(TarotCard)
+// MARK: - Canvas card model
+
+struct PlacedCard: Identifiable {
+    var id        = UUID().uuidString
+    let card:       TarotCard
+    var position:   CGPoint
+    var rotation:   Double
 }
+
+// MARK: - State
 
 final class FullscreenState: ObservableObject {
     static let shared = FullscreenState()
-    @Published var screen: FullscreenScreen = .search
+
+    @Published var canvasCards:   [PlacedCard] = []
+    @Published var showingSearch: Bool          = false
+    @Published var selectedCard:  TarotCard?    = nil
+    @Published var toastMessage:  String?       = nil
+
     private init() {}
+
+    func addCard(_ card: TarotCard, canvasSize: CGSize) {
+        guard canvasCards.count < 12 else { return }
+        let cx = canvasSize.width  / 2
+        let cy = canvasSize.height / 2
+        let placed = PlacedCard(
+            card:     card,
+            position: CGPoint(x: cx + CGFloat.random(in: -240...240),
+                              y: cy + CGFloat.random(in: -140...140)),
+            rotation: Double.random(in: -10...10)
+        )
+        canvasCards.append(placed)
+    }
+
+    func updatePosition(id: String, to point: CGPoint) {
+        guard let idx = canvasCards.firstIndex(where: { $0.id == id }) else { return }
+        canvasCards[idx].position = point
+    }
+
+    func addSpreadToJournal() {
+        guard !canvasCards.isEmpty else { return }
+        let fs     = FolderStore.shared
+        let folder = fs.folders.first ?? fs.create(name: "My Readings")
+        let entries = canvasCards.map { CardEntry(cardID: $0.card.id) }
+        let fmt     = DateFormatter()
+        fmt.dateStyle = .medium
+        let reading = ReadingEntry(
+            folderID:    folder.id,
+            title:       "Spread – \(fmt.string(from: Date()))",
+            cardEntries: entries
+        )
+        ReadingStore.shared.save(reading)
+        showToast("Spread added to journal")
+    }
+
+    func showToast(_ msg: String) {
+        toastMessage = msg
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { [weak self] in
+            self?.toastMessage = nil
+        }
+    }
 }
+
+// MARK: - Window controller
 
 final class FullscreenWindowController: NSWindowController, NSWindowDelegate {
     static let shared = FullscreenWindowController()
@@ -31,8 +84,6 @@ final class FullscreenWindowController: NSWindowController, NSWindowDelegate {
         win.titlebarAppearsTransparent = true
         win.titleVisibility = .hidden
         win.backgroundColor = .black
-        // .fullScreenPrimary lets macOS manage this as a proper fullscreen space —
-        // Stage Manager, Mission Control, and swipe gestures all work correctly.
         win.collectionBehavior = [.fullScreenPrimary, .managed]
 
         super.init(window: win)
@@ -49,10 +100,6 @@ final class FullscreenWindowController: NSWindowController, NSWindowDelegate {
         win.toggleFullScreen(nil)
     }
 
-    func navigate(to newScreen: FullscreenScreen) {
-        FullscreenState.shared.screen = newScreen
-    }
-
     func hide() {
         guard let win = window else { return }
         NSAnimationContext.runAnimationGroup({ ctx in
@@ -60,37 +107,36 @@ final class FullscreenWindowController: NSWindowController, NSWindowDelegate {
             ctx.timingFunction = CAMediaTimingFunction(name: .easeIn)
             win.animator().alphaValue = 0
         }, completionHandler: {
-            if win.styleMask.contains(.fullScreen) {
-                win.toggleFullScreen(nil)
-            } else {
-                win.orderOut(nil)
-            }
-            // Restore alpha after the native exit animation finishes
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                win.alphaValue = 1
-            }
+            if win.styleMask.contains(.fullScreen) { win.toggleFullScreen(nil) }
+            else { win.orderOut(nil) }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { win.alphaValue = 1 }
         })
     }
 
     private func handleEscape() {
-        switch FullscreenState.shared.screen {
-        case .search:          hide()
-        case .journal, .card:  navigate(to: .search)
-        }
+        let s = FullscreenState.shared
+        if s.selectedCard != nil  { s.selectedCard  = nil;   return }
+        if s.showingSearch        { s.showingSearch  = false; return }
+        hide()
     }
 
-    // MARK: - NSWindowDelegate
+    // MARK: NSWindowDelegate
 
     func windowDidEnterFullScreen(_ notification: Notification) {
         NotificationCenter.default.post(name: .fullscreenWillShow, object: nil)
         guard keyMonitor == nil else { return }
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard self?.window?.isKeyWindow == true else { return event }
-            if event.keyCode == 53, !(self?.window?.firstResponder is NSTextView) {
+            switch event.keyCode {
+            case 118: // F4 — toggle card search
+                FullscreenState.shared.showingSearch.toggle()
+                return nil
+            case 53 where !(self?.window?.firstResponder is NSTextView): // Escape
                 self?.handleEscape()
                 return nil
+            default:
+                return event
             }
-            return event
         }
     }
 

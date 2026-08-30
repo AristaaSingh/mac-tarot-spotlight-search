@@ -15,34 +15,171 @@ private struct FloatingLinesView: NSViewRepresentable {
     func updateNSView(_ nsView: WKWebView, context: Context) {}
 }
 
-// MARK: - Root view (switches between search / journal / card)
+// MARK: - Root
 
 struct FullscreenRootView: View {
     @ObservedObject private var state = FullscreenState.shared
 
     var body: some View {
-        ZStack {
-            FloatingLinesView().ignoresSafeArea()
-            Color.black.opacity(0.12)
+        GeometryReader { geo in
+            ZStack {
+                FloatingLinesView().ignoresSafeArea()
+                Color.black.opacity(0.15).ignoresSafeArea()
 
-            switch state.screen {
-            case .search:
-                FullscreenSearchContent()
-            case .journal:
-                FullscreenJournalContent()
-            case .card(let card):
-                FullscreenCardContent(card: card)
+                // Canvas
+                CanvasView(size: geo.size)
+
+                // Empty-state hint
+                if state.canvasCards.isEmpty && !state.showingSearch && state.selectedCard == nil {
+                    VStack(spacing: 10) {
+                        Image(systemName: "rectangle.stack")
+                            .font(.system(size: 36, weight: .thin))
+                            .foregroundColor(.white.opacity(0.18))
+                        Text("Press F4 to add cards")
+                            .font(.app(15))
+                            .foregroundColor(.white.opacity(0.22))
+                    }
+                }
+
+                // Add-to-journal bar
+                if !state.canvasCards.isEmpty && state.selectedCard == nil && !state.showingSearch {
+                    VStack {
+                        Spacer()
+                        AddToJournalBar()
+                            .padding(.bottom, 30)
+                    }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+
+                // Search overlay (F4)
+                if state.showingSearch {
+                    FullscreenSearchOverlay(canvasSize: geo.size)
+                        .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
+                }
+
+                // Card detail overlay
+                if let card = state.selectedCard {
+                    FullscreenCardDetailOverlay(card: card, canvasSize: geo.size)
+                        .transition(.opacity)
+                }
+
+                // Toast
+                if let msg = state.toastMessage {
+                    VStack {
+                        Spacer()
+                        Text(msg)
+                            .font(.app(14))
+                            .foregroundColor(.white.opacity(0.9))
+                            .padding(.horizontal, 22)
+                            .padding(.vertical, 10)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Capsule())
+                            .padding(.bottom, 84)
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                }
             }
+            .animation(.easeInOut(duration: 0.22), value: state.showingSearch)
+            .animation(.easeInOut(duration: 0.22), value: state.selectedCard?.id)
+            .animation(.easeInOut(duration: 0.3),  value: state.toastMessage)
+            .animation(.easeInOut(duration: 0.25), value: state.canvasCards.isEmpty)
         }
+        .ignoresSafeArea()
         .onReceive(NotificationCenter.default.publisher(for: .fullscreenWillShow)) { _ in
-            state.screen = .search
+            // Open search immediately when fullscreen first appears
+            FullscreenState.shared.showingSearch  = true
+            FullscreenState.shared.selectedCard   = nil
         }
     }
 }
 
-// MARK: - Search content
+// MARK: - Canvas
 
-struct FullscreenSearchContent: View {
+private struct CanvasView: View {
+    let size: CGSize
+    @ObservedObject private var state = FullscreenState.shared
+
+    var body: some View {
+        ZStack {
+            ForEach(state.canvasCards) { placed in
+                CanvasCardView(placed: placed)
+            }
+        }
+        .frame(width: size.width, height: size.height)
+    }
+}
+
+// MARK: - Canvas card
+
+private let canvasCardW: CGFloat = 92
+private let canvasCardH: CGFloat = 138
+
+private struct CanvasCardView: View {
+    let placed: PlacedCard
+    @State private var dragOffset: CGSize = .zero
+    @State private var isHovered = false
+
+    var body: some View {
+        CardThumbnailView(card: placed.card)
+            .frame(width: canvasCardW, height: canvasCardH)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .rotationEffect(.degrees(placed.rotation))
+            .shadow(color: .black.opacity(isHovered ? 0.65 : 0.4),
+                    radius: isHovered ? 28 : 14, x: 0, y: isHovered ? 14 : 7)
+            .scaleEffect(isHovered ? 1.07 : 1.0)
+            .animation(.easeOut(duration: 0.15), value: isHovered)
+            .onHover { isHovered = $0 }
+            .gesture(
+                DragGesture(minimumDistance: 4)
+                    .onChanged { v in dragOffset = v.translation }
+                    .onEnded { v in
+                        let dist = hypot(v.translation.width, v.translation.height)
+                        if dist < 6 {
+                            // Treat tiny move as a tap → open detail
+                            FullscreenState.shared.selectedCard = placed.card
+                        } else {
+                            FullscreenState.shared.updatePosition(
+                                id: placed.id,
+                                to: CGPoint(x: placed.position.x + v.translation.width,
+                                            y: placed.position.y + v.translation.height)
+                            )
+                        }
+                        dragOffset = .zero
+                    }
+            )
+            .position(x: placed.position.x + dragOffset.width,
+                      y: placed.position.y + dragOffset.height)
+    }
+}
+
+// MARK: - Add to journal bar
+
+private struct AddToJournalBar: View {
+    @ObservedObject private var state = FullscreenState.shared
+
+    var body: some View {
+        Button(action: { state.addSpreadToJournal() }) {
+            HStack(spacing: 8) {
+                Image(systemName: "book.closed")
+                    .font(.system(size: 13, weight: .medium))
+                Text("Add spread to journal")
+                    .font(.app(14))
+            }
+            .foregroundColor(.white.opacity(0.88))
+            .padding(.horizontal, 26)
+            .padding(.vertical, 13)
+            .background(.ultraThinMaterial)
+            .clipShape(Capsule())
+            .overlay(Capsule().stroke(Color.white.opacity(0.18), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Search overlay
+
+private struct FullscreenSearchOverlay: View {
+    let canvasSize: CGSize
     @State private var query          = ""
     @State private var debouncedQuery = ""
     @State private var debounceTimer: Timer?
@@ -50,8 +187,8 @@ struct FullscreenSearchContent: View {
     private let nsWhite = NSColor.white
 
     private let digitWords: [(String, String)] = [
-        ("10", "ten"), ("2", "two"), ("3", "three"), ("4", "four"), ("5", "five"),
-        ("6", "six"), ("7", "seven"), ("8", "eight"), ("9", "nine")
+        ("10","ten"),("2","two"),("3","three"),("4","four"),("5","five"),
+        ("6","six"),("7","seven"),("8","eight"),("9","nine")
     ]
 
     private func normalize(_ q: String) -> String {
@@ -74,47 +211,20 @@ struct FullscreenSearchContent: View {
     }
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 7)
+    private let state   = FullscreenState.shared
 
     var body: some View {
         ZStack {
-            // Close button pinned to top-right
-            VStack {
-                HStack {
-                    // Journal toggle
-                    Button(action: { FullscreenWindowController.shared.navigate(to: .journal) }) {
-                        Image(systemName: "book.closed")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.5))
-                            .frame(width: 26, height: 26)
-                            .background(Color.white.opacity(0.1))
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                    .help("Open Journal")
-                    .padding(.leading, 22)
-                    .padding(.top, 22)
+            // Tappable backdrop
+            Color.black.opacity(0.55)
+                .ignoresSafeArea()
+                .onTapGesture { dismiss() }
 
-                    Spacer()
+            VStack(spacing: 32) {
+                Color.clear.frame(height: 120)
 
-                    Button(action: { FullscreenWindowController.shared.hide() }) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(.white.opacity(0.5))
-                            .frame(width: 26, height: 26)
-                            .background(Color.white.opacity(0.1))
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.trailing, 22)
-                    .padding(.top, 22)
-                }
-                Spacer()
-            }
-
-            // Search + results
-            VStack(spacing: 36) {
-                Color.clear.frame(height: 160)
                 searchBar
+
                 if !results.isEmpty {
                     ScrollView(.vertical, showsIndicators: false) {
                         LazyVGrid(columns: columns, spacing: 16) {
@@ -123,7 +233,8 @@ struct FullscreenSearchContent: View {
                                 id: \.element.id
                             ) { idx, card in
                                 FullscreenCardTile(card: card, delay: Double(idx) * 0.03) {
-                                    FullscreenWindowController.shared.navigate(to: .card(card))
+                                    state.addCard(card, canvasSize: canvasSize)
+                                    dismiss()
                                 }
                                 .aspectRatio(2/3, contentMode: .fit)
                             }
@@ -131,23 +242,32 @@ struct FullscreenSearchContent: View {
                         .padding(.horizontal, 60)
                         .padding(.bottom, 40)
                     }
+                } else if debouncedQuery.isEmpty {
+                    Text("F4 to dismiss  ·  click a card to place it on the canvas")
+                        .font(.app(13))
+                        .foregroundColor(.white.opacity(0.3))
                 }
+
                 Spacer()
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .fullscreenWillShow)) { _ in
+        .onAppear {
             query = ""; debouncedQuery = ""
             debounceTimer?.invalidate()
-            searchFocused = false
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { searchFocused = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { searchFocused = true }
         }
         .onChange(of: query) {
             debounceTimer?.invalidate()
             guard !query.isEmpty else { debouncedQuery = ""; return }
-            debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.28, repeats: false) { _ in
+            debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: false) { _ in
                 DispatchQueue.main.async { debouncedQuery = query }
             }
         }
+    }
+
+    private func dismiss() {
+        query = ""; debouncedQuery = ""
+        FullscreenState.shared.showingSearch = false
     }
 
     private var searchBar: some View {
@@ -165,10 +285,11 @@ struct FullscreenSearchContent: View {
                 isFocused: searchFocused,
                 onSubmit: {
                     if let first = results.first {
-                        FullscreenWindowController.shared.navigate(to: .card(first))
+                        state.addCard(first, canvasSize: canvasSize)
+                        dismiss()
                     }
                 },
-                onEscape: { FullscreenWindowController.shared.hide() }
+                onEscape: { dismiss() }
             )
 
             if !query.isEmpty {
@@ -188,78 +309,48 @@ struct FullscreenSearchContent: View {
     }
 }
 
-// MARK: - Journal content
+// MARK: - Card detail overlay
 
-private struct FullscreenJournalContent: View {
-    var body: some View {
-        ZStack(alignment: .topLeading) {
-            JournalView()
-                .environment(\.journalIsFullscreen, true)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            // Back to search
-            Button(action: { FullscreenWindowController.shared.navigate(to: .search) }) {
-                HStack(spacing: 5) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 10, weight: .bold))
-                    Text("Search")
-                        .font(.app(12))
-                }
-                .foregroundColor(.white.opacity(0.55))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.white.opacity(0.1))
-                .clipShape(Capsule())
-            }
-            .buttonStyle(.plain)
-            .padding(16)
-        }
-    }
-}
-
-// MARK: - Card content
-
-private struct FullscreenCardContent: View {
+private struct FullscreenCardDetailOverlay: View {
     let card: TarotCard
-    private let pad: CGFloat = 44
+    let canvasSize: CGSize
 
     var body: some View {
-        GeometryReader { geo in
-            let availW = geo.size.width  - pad * 2
-            let availH = geo.size.height - pad * 2
-            let cH     = min(availH - 48, availW * 0.28 * 1.5)
-            let cW     = cH * (2.0 / 3.0)
-            let rW     = cW + 48
-            let lW     = availW - rW
+        let pad:   CGFloat = 60
+        let availW         = canvasSize.width  - pad * 2
+        let availH         = canvasSize.height - pad * 2
+        let cH             = min(availH - 48, availW * 0.28 * 1.5)
+        let cW             = cH * (2.0 / 3.0)
+        let rW             = cW + 48
+        let lW             = availW - rW
 
-            ZStack {
-                CardDetailPopupView(
-                    card: card,
-                    onClose: { FullscreenWindowController.shared.navigate(to: .search) },
-                    onEditorOpened:         { editor in editor.window?.level = .screenSaver },
-                    onKeywordsEditorOpened: { editor in editor.window?.level = .screenSaver },
-                    backgroundBlur:         10,
-                    backgroundCornerRadius: 20,
-                    closeInset:             22,
-                    windowW:                availW,
-                    windowH:                availH,
-                    leftW:                  lW,
-                    rightW:                 rW,
-                    cardW:                  cW,
-                    cardH:                  cH,
-                    fontBoost:              4
-                )
-                .shadow(color: .black.opacity(0.4), radius: 40, x: 0, y: 20)
-            }
-            .frame(width: geo.size.width, height: geo.size.height)
+        ZStack {
+            Color.black.opacity(0.55)
+                .ignoresSafeArea()
+                .onTapGesture { FullscreenState.shared.selectedCard = nil }
+
+            CardDetailPopupView(
+                card: card,
+                onClose: { FullscreenState.shared.selectedCard = nil },
+                onEditorOpened:         { $0.window?.level = .screenSaver },
+                onKeywordsEditorOpened: { $0.window?.level = .screenSaver },
+                backgroundBlur:         10,
+                backgroundCornerRadius: 20,
+                closeInset:             22,
+                windowW: availW, windowH: availH,
+                leftW:   lW,     rightW:  rW,
+                cardW:   cW,     cardH:   cH,
+                fontBoost: 4
+            )
+            .shadow(color: .black.opacity(0.4), radius: 40, x: 0, y: 20)
+            .frame(width: availW, height: availH)
         }
-        .ignoresSafeArea()
     }
 }
 
-// MARK: - Card tile
+// MARK: - Card tile (shared)
 
-private struct FullscreenCardTile: View {
+struct FullscreenCardTile: View {
     let card:  TarotCard
     let delay: Double
     let onTap: () -> Void
@@ -276,6 +367,6 @@ private struct FullscreenCardTile: View {
             .animation(.easeOut(duration: 0.15), value: isHovered)
             .onAppear  { appeared  = true }
             .onTapGesture { onTap() }
-            .onHover   { isHovered = $0  }
+            .onHover   { isHovered = $0 }
     }
 }

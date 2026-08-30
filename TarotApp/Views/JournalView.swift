@@ -352,8 +352,7 @@ struct FolderListView: View {
     }
 
     private func close() {
-        if isFullscreen { FullscreenWindowController.shared.navigate(to: .search) }
-        else            { OverlayWindowController.shared.hide() }
+        OverlayWindowController.shared.hide()
     }
 }
 
