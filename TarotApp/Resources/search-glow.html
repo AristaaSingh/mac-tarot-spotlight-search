@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; background: transparent; overflow: hidden; }
+canvas { position: fixed; inset: 0; width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+
+// Warm white / gold sparkle palette
+const COLORS = [
+  '#ffffff', '#ffffff', '#ffffff',   // mostly white
+  '#fffde7', '#fff8e1', '#fef9c3',   // warm gold hints
+  '#e8eeff', '#ede9fe',              // soft violet
+  '#f0f9ff',                         // ice blue
+];
+
+const GAP     = 7;   // grid spacing
+const MAX_PX  = 160; // pixel pool cap
+
+class Sparkle {
+  constructor(x, y, baseAlpha) {
+    this.x = x;
+    this.y = y;
+    this.baseAlpha = baseAlpha;
+    this.reset();
+  }
+
+  reset() {
+    this.color    = COLORS[Math.random() * COLORS.length | 0];
+    this.size     = Math.random() * 1.8 + 0.5;
+    // Each sparkle lives for a short random window then goes dark
+    this.life     = 0;
+    this.maxLife  = Math.random() * 40 + 15;         // frames visible
+    this.delay    = Math.random() * 200 | 0;          // frames before appearing
+    this.counter  = -this.delay;
+    this.dead     = false;
+  }
+
+  update() {
+    this.counter++;
+    if (this.counter < 0) return;        // still waiting
+    this.life++;
+    if (this.life > this.maxLife) {
+      this.dead = true;
+    }
+  }
+
+  // Alpha envelope: ramp up for first 20%, hold, ramp down for last 30%
+  get envelope() {
+    const t = this.life / this.maxLife;
+    if (t < 0.2) return t / 0.2;
+    if (t > 0.7) return (1 - t) / 0.3;
+    return 1;
+  }
+
+  draw() {
+    if (this.counter < 0 || this.dead) return;
+    const a = this.envelope * this.baseAlpha;
+    if (a < 0.01) return;
+    ctx.globalAlpha = a;
+    ctx.fillStyle   = this.color;
+    // Draw a tiny cross/plus for a star twinkle feel
+    const s = this.size;
+    ctx.fillRect(this.x,         this.y - s * 0.5, s * 0.35, s);   // vertical
+    ctx.fillRect(this.x - s * 0.5, this.y,         s,         s * 0.35); // horizontal
+  }
+}
+
+let sparkles = [];
+
+function ellipticAlpha(x, y, W, H) {
+  // Distance from center in an ellipse sized to match the search bar proportions.
+  // The bar is 540×64 inside an 800×200 canvas, so relative inset ≈ 13% x, 16% y.
+  const dx = (x - W / 2) / (W * 0.47);
+  const dy = (y - H / 2) / (H * 0.34);
+  const d  = Math.sqrt(dx * dx + dy * dy);
+  // Steep falloff: bright at the bar edge, transparent far out
+  return Math.pow(Math.max(0, 1 - d), 1.6);
+}
+
+function init() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  sparkles = [];
+  const W = canvas.width, H = canvas.height;
+  const candidates = [];
+  for (let x = GAP / 2; x < W; x += GAP) {
+    for (let y = GAP / 2; y < H; y += GAP) {
+      const a = ellipticAlpha(x, y, W, H);
+      if (a > 0.04) candidates.push({ x, y, a });
+    }
+  }
+  // Weight sampling toward higher-alpha positions so the bar outline sparkles most
+  for (let i = 0; i < Math.min(candidates.length, MAX_PX * 4); i++) {
+    const c = candidates[Math.random() * candidates.length | 0];
+    sparkles.push(new Sparkle(c.x, c.y, c.a));
+  }
+}
+
+function loop() {
+  requestAnimationFrame(loop);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.globalAlpha = 1;
+
+  for (let i = sparkles.length - 1; i >= 0; i--) {
+    const s = sparkles[i];
+    s.update();
+    s.draw();
+    if (s.dead) {
+      // Respawn at a randomly chosen candidate position
+      s.reset();
+    }
+  }
+
+  ctx.globalAlpha = 1;
+}
+
+init();
+loop();
+window.addEventListener('resize', init);
+</script>
+</body>
+</html>

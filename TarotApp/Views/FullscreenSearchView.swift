@@ -15,6 +15,123 @@ private struct FloatingLinesView: NSViewRepresentable {
     func updateNSView(_ nsView: WKWebView, context: Context) {}
 }
 
+// MARK: - Sparkle glow (pure SwiftUI Canvas)
+
+private struct SparkleGlowView: View {
+
+    // Fixed canvas dimensions — must match .frame() call at the usage site
+    private static let W: CGFloat = 800
+    private static let H: CGFloat = 200
+    // The search bar occupies this region in the center
+    private static let barW: CGFloat = 540
+    private static let barH: CGFloat = 64
+
+    struct Sparkle {
+        let x, y:      CGFloat
+        let color:     Color
+        let size:      CGFloat  // cross arm half-length in pts
+        let period:    Double
+        let phase:     Double
+        let baseAlpha: Double   // proximity factor: 1 at bar edge → 0 at scatter limit
+
+        func alpha(t: Double) -> Double {
+            let local = ((t + phase).truncatingRemainder(dividingBy: period)) / period
+            guard local < 0.30 else { return 0 }
+            return baseAlpha * sin(local / 0.30 * .pi)
+        }
+    }
+
+    // Pre-built at app launch — no GeometryReader, no onAppear timing issues
+    static let sparkles: [Sparkle] = {
+        let W = SparkleGlowView.W, H = SparkleGlowView.H
+        let bW = SparkleGlowView.barW, bH = SparkleGlowView.barH
+        let bL = (W - bW) / 2, bR = (W + bW) / 2
+        let bT = (H - bH) / 2, bB = (H + bH) / 2
+
+        let colors: [Color] = [
+            .white, .white, .white,
+            Color(red: 1.0, green: 0.95, blue: 0.70),  // gold
+            Color(red: 1.0, green: 0.82, blue: 1.0),   // pink
+            Color(red: 0.75, green: 0.92, blue: 1.0),  // ice blue
+            Color(red: 0.93, green: 0.85, blue: 1.0),  // lavender
+        ]
+
+        let maxDist: CGFloat = 150    // scatter radius in pts from bar edge
+
+        // Random scatter: generate many candidates uniformly, keep those in the halo zone
+        var candidates: [(x: CGFloat, y: CGFloat, weight: CGFloat)] = []
+        candidates.reserveCapacity(10_000)
+        for _ in 0..<35_000 {
+            let x = CGFloat.random(in: 0..<W)
+            let y = CGFloat.random(in: 0..<H)
+            let inside = x >= bL && x <= bR && y >= bT && y <= bB
+            guard !inside else { continue }
+            let dxE = max(0, max(bL - x, x - bR))
+            let dyE = max(0, max(bT - y, y - bB))
+            let dist = sqrt(dxE*dxE + dyE*dyE)
+            guard dist < maxDist else { continue }
+            let w = pow(1.0 - dist / maxDist, 4.0)
+            candidates.append((x, y, w))
+        }
+        guard !candidates.isEmpty else { return [] }
+
+        // Rejection-sample using the weight as acceptance probability
+        // (keeps the scatter truly random — no lattice artifact from pool duplication)
+        var sparkles: [Sparkle] = []
+        sparkles.reserveCapacity(1200)
+        var attempts = 0
+        while sparkles.count < 2000 && attempts < 400_000 {
+            attempts += 1
+            let c = candidates[Int.random(in: 0..<candidates.count)]
+            if Double.random(in: 0...1) < Double(c.weight) {
+                sparkles.append(Sparkle(
+                    x:         c.x,
+                    y:         c.y,
+                    color:     colors[Int.random(in: 0..<colors.count)],
+                    size:      CGFloat.random(in: 0.3...1.0),
+                    period:    Double.random(in: 0.4...2.2),
+                    phase:     Double.random(in: 0...15),
+                    baseAlpha: Double(c.weight)
+                ))
+            }
+        }
+        return sparkles
+    }()
+
+    var body: some View {
+        TimelineView(.animation) { tl in
+            Canvas { ctx, _ in
+                let t = tl.date.timeIntervalSinceReferenceDate
+                for sp in Self.sparkles {
+                    let a = sp.alpha(t: t)
+                    guard a > 0.01 else { continue }
+                    let s = sp.size
+
+                    // Soft glow halo
+                    ctx.opacity = a * 0.35
+                    let r = s * 1.8
+                    ctx.fill(
+                        Path(ellipseIn: CGRect(x: sp.x - r, y: sp.y - r,
+                                               width: r * 2, height: r * 2)),
+                        with: .color(sp.color)
+                    )
+
+                    // Bright cross
+                    ctx.opacity = a
+                    var cross = Path()
+                    cross.addRect(CGRect(x: sp.x - s * 0.18, y: sp.y - s,
+                                         width: s * 0.36, height: s * 2))
+                    cross.addRect(CGRect(x: sp.x - s, y: sp.y - s * 0.18,
+                                         width: s * 2, height: s * 0.36))
+                    ctx.fill(cross, with: .color(sp.color))
+                }
+                ctx.opacity = 1
+            }
+        }
+        .frame(width: Self.W, height: Self.H)
+    }
+}
+
 // MARK: - Root
 
 struct FullscreenRootView: View {
@@ -120,8 +237,9 @@ private struct CanvasView: View {
 
 // MARK: - Canvas card
 
-private let canvasCardW: CGFloat = 92
-private let canvasCardH: CGFloat = 138
+// Card images are ~500×863px (ratio ≈ 0.579). Match this so scaledToFill doesn't crop.
+private let canvasCardW: CGFloat = 115
+private let canvasCardH: CGFloat = 198
 
 private struct CanvasCardView: View {
     let placed: PlacedCard
@@ -224,9 +342,10 @@ private struct FullscreenSearchOverlay: View {
 
     var body: some View {
         ZStack {
-            // Tappable backdrop
-            Color.black.opacity(0.55)
+            // Tappable backdrop (transparent — tap anywhere outside search to dismiss)
+            Color.clear
                 .ignoresSafeArea()
+                .contentShape(Rectangle())
                 .onTapGesture { dismiss() }
 
             VStack(spacing: 32) {
@@ -280,41 +399,53 @@ private struct FullscreenSearchOverlay: View {
     }
 
     private var searchBar: some View {
-        HStack(spacing: 14) {
-            Image(systemName: "moon.stars.fill")
-                .font(.app(18))
-                .foregroundColor(.white.opacity(0.75))
+        ZStack {
+            // Sparkle glow — overflows the bar bounds to create a surrounding halo
+            SparkleGlowView()
+                .allowsHitTesting(false)
 
-            ThemedTextField(
-                text: $query,
-                placeholder: "Search cards…",
-                nsFont: .didot(22),
-                textColor: nsWhite,
-                cursorColor: nsWhite,
-                isFocused: searchFocused,
-                onSubmit: {
-                    if let first = results.first {
-                        state.addCard(first, canvasSize: canvasSize)
-                        dismiss()
+            // Same look as Mode 1: GIF background + dark overlay, clipped
+            ZStack {
+                AnimatedGIFView(filename: "dreamy-banner")
+                    .frame(width: 540, height: 64)
+                    .clipped()
+                Color.black.opacity(0.25)
+
+                HStack(spacing: 12) {
+                    Image(systemName: "moon.stars.fill")
+                        .font(.app(16))
+                        .foregroundColor(.white)
+
+                    ThemedTextField(
+                        text: $query,
+                        placeholder: "Search cards…",
+                        nsFont: .didot(18),
+                        textColor: nsWhite,
+                        cursorColor: nsWhite,
+                        isFocused: searchFocused,
+                        onSubmit: {
+                            if let first = results.first {
+                                state.addCard(first, canvasSize: canvasSize)
+                                dismiss()
+                            }
+                        },
+                        onEscape: { dismiss() }
+                    )
+
+                    if !query.isEmpty {
+                        Button { query = ""; debouncedQuery = "" } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.white.opacity(0.3))
+                        }
+                        .buttonStyle(.plain)
                     }
-                },
-                onEscape: { dismiss() }
-            )
-
-            if !query.isEmpty {
-                Button { query = ""; debouncedQuery = "" } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 14))
-                        .foregroundColor(.white.opacity(0.35))
                 }
-                .buttonStyle(.plain)
+                .padding(.horizontal, 20)
             }
+            .frame(width: 540, height: 64)
+            .clipShape(RoundedRectangle(cornerRadius: 24))
+            .overlay(RoundedRectangle(cornerRadius: 24).stroke(Color.white.opacity(0.15), lineWidth: 1))
         }
-        .padding(.horizontal, 24)
-        .frame(width: 580, height: 68)
-        .background(Color.white.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 22))
-        .overlay(RoundedRectangle(cornerRadius: 22).stroke(Color.white.opacity(0.15), lineWidth: 1))
     }
 }
 
@@ -422,7 +553,7 @@ private struct SpreadFolderPickerOverlay: View {
                 HStack(spacing: -10) {
                     ForEach(Array(cards.enumerated()), id: \.element.id) { idx, placed in
                         CardThumbnailView(card: placed.card)
-                            .frame(width: 28, height: 42)
+                            .frame(width: 28, height: 48)
                             .clipShape(RoundedRectangle(cornerRadius: 4))
                             .rotationEffect(.degrees(Double(idx - 2) * 3))
                             .zIndex(Double(idx))
