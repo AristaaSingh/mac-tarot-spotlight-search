@@ -19,10 +19,11 @@ struct PlacedCard: Identifiable {
 final class FullscreenState: ObservableObject {
     static let shared = FullscreenState()
 
-    @Published var canvasCards:   [PlacedCard] = []
-    @Published var showingSearch: Bool          = false
-    @Published var selectedCard:  TarotCard?    = nil
-    @Published var toastMessage:  String?       = nil
+    @Published var canvasCards:        [PlacedCard] = []
+    @Published var showingSearch:       Bool         = false
+    @Published var selectedCard:        TarotCard?   = nil
+    @Published var showingFolderPicker: Bool         = false
+    @Published var toastMessage:        String?      = nil
 
     private init() {}
 
@@ -44,12 +45,14 @@ final class FullscreenState: ObservableObject {
         canvasCards[idx].position = point
     }
 
-    func addSpreadToJournal() {
+    func requestJournalFolder() {
         guard !canvasCards.isEmpty else { return }
-        let fs     = FolderStore.shared
-        let folder = fs.folders.first ?? fs.create(name: "My Readings")
+        showingFolderPicker = true
+    }
+
+    func saveSpread(toFolder folder: Folder) {
         let entries = canvasCards.map { CardEntry(cardID: $0.card.id) }
-        let fmt     = DateFormatter()
+        let fmt = DateFormatter()
         fmt.dateStyle = .medium
         let reading = ReadingEntry(
             folderID:    folder.id,
@@ -57,7 +60,8 @@ final class FullscreenState: ObservableObject {
             cardEntries: entries
         )
         ReadingStore.shared.save(reading)
-        showToast("Spread added to journal")
+        showingFolderPicker = false
+        showToast("Spread added to \(folder.name)")
     }
 
     func showToast(_ msg: String) {
@@ -73,6 +77,7 @@ final class FullscreenState: ObservableObject {
 final class FullscreenWindowController: NSWindowController, NSWindowDelegate {
     static let shared = FullscreenWindowController()
     private var keyMonitor: Any?
+    private var hideAfterExitingFullScreen = false
 
     private init() {
         let win = KeyableWindow(
@@ -107,31 +112,42 @@ final class FullscreenWindowController: NSWindowController, NSWindowDelegate {
             ctx.timingFunction = CAMediaTimingFunction(name: .easeIn)
             win.animator().alphaValue = 0
         }, completionHandler: {
-            if win.styleMask.contains(.fullScreen) { win.toggleFullScreen(nil) }
-            else { win.orderOut(nil) }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { win.alphaValue = 1 }
+            if win.styleMask.contains(.fullScreen) {
+                self.hideAfterExitingFullScreen = true
+                win.toggleFullScreen(nil)
+            } else {
+                win.orderOut(nil)
+                win.alphaValue = 1
+            }
         })
     }
 
-    private func handleEscape() {
+    func handleEscape() {
         let s = FullscreenState.shared
-        if s.selectedCard != nil  { s.selectedCard  = nil;   return }
-        if s.showingSearch        { s.showingSearch  = false; return }
+        if s.selectedCard != nil       { s.selectedCard        = nil;   return }
+        if s.showingFolderPicker       { s.showingFolderPicker = false; return }
+        if s.showingSearch             { s.showingSearch        = false; return }
         hide()
     }
 
     // MARK: NSWindowDelegate
 
     func windowDidEnterFullScreen(_ notification: Notification) {
+        let s = FullscreenState.shared
+        s.canvasCards.removeAll()
+        s.selectedCard        = nil
+        s.showingSearch       = false
+        s.showingFolderPicker = false
+        s.toastMessage        = nil
         NotificationCenter.default.post(name: .fullscreenWillShow, object: nil)
         guard keyMonitor == nil else { return }
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard self?.window?.isKeyWindow == true else { return event }
             switch event.keyCode {
-            case 118: // F4 — toggle card search
+            case 49 where !(self?.window?.firstResponder is NSTextView): // Space — toggle card search
                 FullscreenState.shared.showingSearch.toggle()
                 return nil
-            case 53 where !(self?.window?.firstResponder is NSTextView): // Escape
+            case 53: // Escape — always handled by us, never propagated to macOS fullscreen exit
                 self?.handleEscape()
                 return nil
             default:
@@ -142,5 +158,10 @@ final class FullscreenWindowController: NSWindowController, NSWindowDelegate {
 
     func windowDidExitFullScreen(_ notification: Notification) {
         if let m = keyMonitor { NSEvent.removeMonitor(m); keyMonitor = nil }
+        if hideAfterExitingFullScreen {
+            hideAfterExitingFullScreen = false
+            window?.orderOut(nil)
+            window?.alphaValue = 1
+        }
     }
 }

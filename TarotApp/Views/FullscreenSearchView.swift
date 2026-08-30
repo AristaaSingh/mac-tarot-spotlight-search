@@ -35,14 +35,15 @@ struct FullscreenRootView: View {
                         Image(systemName: "rectangle.stack")
                             .font(.system(size: 36, weight: .thin))
                             .foregroundColor(.white.opacity(0.18))
-                        Text("Press F4 to add cards")
+                        Text("Press Space to add cards")
                             .font(.app(15))
                             .foregroundColor(.white.opacity(0.22))
                     }
                 }
 
                 // Add-to-journal bar
-                if !state.canvasCards.isEmpty && state.selectedCard == nil && !state.showingSearch {
+                if !state.canvasCards.isEmpty && state.selectedCard == nil
+                    && !state.showingSearch && !state.showingFolderPicker {
                     VStack {
                         Spacer()
                         AddToJournalBar()
@@ -63,6 +64,12 @@ struct FullscreenRootView: View {
                         .transition(.opacity)
                 }
 
+                // Folder picker overlay
+                if state.showingFolderPicker {
+                    SpreadFolderPickerOverlay()
+                        .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                }
+
                 // Toast
                 if let msg = state.toastMessage {
                     VStack {
@@ -81,10 +88,12 @@ struct FullscreenRootView: View {
             }
             .animation(.easeInOut(duration: 0.22), value: state.showingSearch)
             .animation(.easeInOut(duration: 0.22), value: state.selectedCard?.id)
+            .animation(.easeInOut(duration: 0.22), value: state.showingFolderPicker)
             .animation(.easeInOut(duration: 0.3),  value: state.toastMessage)
             .animation(.easeInOut(duration: 0.25), value: state.canvasCards.isEmpty)
         }
         .ignoresSafeArea()
+        .onExitCommand { FullscreenWindowController.shared.handleEscape() }
         .onReceive(NotificationCenter.default.publisher(for: .fullscreenWillShow)) { _ in
             // Open search immediately when fullscreen first appears
             FullscreenState.shared.showingSearch  = true
@@ -158,7 +167,7 @@ private struct AddToJournalBar: View {
     @ObservedObject private var state = FullscreenState.shared
 
     var body: some View {
-        Button(action: { state.addSpreadToJournal() }) {
+        Button(action: { state.requestJournalFolder() }) {
             HStack(spacing: 8) {
                 Image(systemName: "book.closed")
                     .font(.system(size: 13, weight: .medium))
@@ -243,7 +252,7 @@ private struct FullscreenSearchOverlay: View {
                         .padding(.bottom, 40)
                     }
                 } else if debouncedQuery.isEmpty {
-                    Text("F4 to dismiss  ·  click a card to place it on the canvas")
+                    Text("Space to dismiss  ·  click a card to place it on the canvas")
                         .font(.app(13))
                         .foregroundColor(.white.opacity(0.3))
                 }
@@ -345,6 +354,229 @@ private struct FullscreenCardDetailOverlay: View {
             .shadow(color: .black.opacity(0.4), radius: 40, x: 0, y: 20)
             .frame(width: availW, height: availH)
         }
+    }
+}
+
+// MARK: - Folder picker overlay
+
+private struct SpreadFolderPickerOverlay: View {
+    @ObservedObject private var folderStore = FolderStore.shared
+    @ObservedObject private var state       = FullscreenState.shared
+
+    @State private var isCreating         = false
+    @State private var newFolderName      = ""
+    @State private var createFieldFocused = false
+
+    private let w: CGFloat = 540
+    private let h: CGFloat = 520
+    private let columns    = Array(repeating: GridItem(.flexible(), spacing: 16), count: 3)
+
+    private var entriesByFolder: [String: [ReadingEntry]] {
+        Dictionary(grouping: ReadingStore.shared.entries, by: \.folderID)
+    }
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.55)
+                .ignoresSafeArea()
+                .onTapGesture { dismiss() }
+
+            VStack(spacing: 0) {
+                header
+                Theme.divider.frame(height: 1)
+                folderGrid
+                Theme.divider.frame(height: 1)
+                bottomBar
+            }
+            .frame(width: w, height: h)
+            .background(Theme.bg)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .shadow(color: .black.opacity(0.35), radius: 40, x: 0, y: 16)
+            // X close button
+            .overlay(alignment: .topLeading) {
+                Button(action: dismiss) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(Theme.faint)
+                        .frame(width: 22, height: 22)
+                        .background(Theme.subtle)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .padding(14)
+            }
+        }
+    }
+
+    // MARK: Header
+
+    private var header: some View {
+        VStack(spacing: 4) {
+            Text("Add to Journal")
+                .font(.app(16, weight: .semibold))
+                .foregroundColor(Theme.ink)
+
+            // Mini card preview row
+            let cards = state.canvasCards.prefix(5)
+            if !cards.isEmpty {
+                HStack(spacing: -10) {
+                    ForEach(Array(cards.enumerated()), id: \.element.id) { idx, placed in
+                        CardThumbnailView(card: placed.card)
+                            .frame(width: 28, height: 42)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                            .rotationEffect(.degrees(Double(idx - 2) * 3))
+                            .zIndex(Double(idx))
+                    }
+                }
+                .padding(.top, 2)
+
+                let extra = state.canvasCards.count - 5
+                if extra > 0 {
+                    Text("+ \(extra) more")
+                        .font(.app(11))
+                        .foregroundColor(Theme.faint)
+                }
+            }
+        }
+        .padding(.top, 40)
+        .padding(.bottom, 14)
+        .padding(.horizontal, 20)
+    }
+
+    // MARK: Folder grid
+
+    private var folderGrid: some View {
+        Group {
+            if folderStore.folders.isEmpty && !isCreating {
+                VStack(spacing: 10) {
+                    Image(systemName: "folder")
+                        .font(.system(size: 28))
+                        .foregroundColor(Theme.faint.opacity(0.5))
+                    Text("No folders yet — create one below")
+                        .font(.app(13))
+                        .foregroundColor(Theme.faint)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView(.vertical, showsIndicators: false) {
+                    LazyVGrid(columns: columns, spacing: 10) {
+                        ForEach(Array(folderStore.folders.enumerated()), id: \.element.id) { idx, folder in
+                            PickerFolderTile(
+                                folder:    folder,
+                                entries:   entriesByFolder[folder.id] ?? [],
+                                iconIndex: idx % PickerFolderTile.icons.count
+                            ) {
+                                state.saveSpread(toFolder: folder)
+                            }
+                        }
+                    }
+                    .padding(10)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: Bottom bar
+
+    private var bottomBar: some View {
+        Group {
+            if isCreating {
+                HStack(spacing: 10) {
+                    ThemedTextField(
+                        text: $newFolderName,
+                        placeholder: "Folder name…",
+                        nsFont: .didot(15),
+                        textColor: Theme.nsInk,
+                        cursorColor: Theme.nsInk,
+                        isFocused: createFieldFocused,
+                        onSubmit: { commitCreate() },
+                        onEscape: { cancelCreate() }
+                    )
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(Theme.ink.opacity(0.05))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                    Button("Create", action: commitCreate)
+                        .font(.app(13, weight: .semibold))
+                        .foregroundColor(Theme.ink)
+                        .buttonStyle(.plain)
+
+                    Button(action: cancelCreate) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(Theme.faint)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+            } else {
+                BottomBarButton(icon: "folder.badge.plus", label: "New Folder") {
+                    isCreating = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { createFieldFocused = true }
+                }
+            }
+        }
+    }
+
+    // MARK: Helpers
+
+    private func commitCreate() {
+        let name = newFolderName.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { cancelCreate(); return }
+        let folder = FolderStore.shared.create(name: name)
+        newFolderName = ""; isCreating = false; createFieldFocused = false
+        state.saveSpread(toFolder: folder)
+    }
+
+    private func cancelCreate() {
+        newFolderName = ""; isCreating = false; createFieldFocused = false
+    }
+
+    private func dismiss() {
+        state.showingFolderPicker = false
+    }
+}
+
+// MARK: - Picker folder tile
+
+private struct PickerFolderTile: View {
+    let folder:    Folder
+    let entries:   [ReadingEntry]
+    let iconIndex: Int
+    let onTap:     () -> Void
+
+    @State private var isHovered = false
+
+    static let icons = ["Lanterns", "Cherry", "Herons", "Waves", "Peaches", "Purple"]
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 6) {
+                Image(Self.icons[iconIndex])
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 130, height: 130)
+                    .scaleEffect(isHovered ? 1.07 : 1)
+                    .animation(.easeOut(duration: 0.15), value: isHovered)
+
+                Text(folder.name)
+                    .font(.app(12, weight: .semibold))
+                    .foregroundColor(Theme.ink)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+
+                Text("\(entries.count) reading\(entries.count == 1 ? "" : "s")")
+                    .font(.app(10))
+                    .foregroundColor(Theme.faint)
+            }
+            .padding(.vertical, 4)
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
+        .contentShape(Rectangle())
     }
 }
 
